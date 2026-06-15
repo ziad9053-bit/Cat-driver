@@ -157,6 +157,7 @@ input, textarea {
 .nav-links {
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 
 .cart-link {
@@ -167,6 +168,7 @@ input, textarea {
   padding: 8px;
   border-radius: 50%;
   background-color: rgba(0,0,0,0.03);
+  color: var(--primary-light);
   transition: var(--transition-fast);
 }
 
