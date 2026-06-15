@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingCart, ShieldCheck, Truck } from 'lucide-react';
+import { ShoppingCart, ShieldCheck, Truck, User } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 
 export default function Navbar() {
@@ -22,9 +22,10 @@ export default function Navbar() {
           <span style={{ color: 'var(--primary-color)' }}>كات درايفر</span>
         </Link>
 
-        {/* Worker Login & Cart (Top Right) */}
+        {/* Worker Login & Cart (Top Right in RTL = Left visually) */}
         <div className="nav-links">
           <Link href="/login/worker" className="auth-link worker-link">
+            <User size={20} />
             <span className="hide-mobile">دخول العمال</span>
           </Link>
           

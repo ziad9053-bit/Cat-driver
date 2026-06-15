@@ -266,7 +266,6 @@ input, textarea {
   transition: var(--transition-fast);
   padding: 8px 12px;
   border-radius: var(--border-radius-sm);
-  margin-right: 15px;
 }
 .auth-link:hover {
   color: var(--primary-color);
@@ -274,4 +273,7 @@ input, textarea {
 }
 @media (max-width: 600px) {
   .hide-mobile { display: none; }
+  .auth-link { padding: 8px; gap: 4px; }
+  .logo-icon { width: 24px; height: 24px; }
+  .navbar-container { padding: 0 10px; }
 }
