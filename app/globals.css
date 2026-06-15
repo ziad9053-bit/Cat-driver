@@ -264,16 +264,20 @@ input, textarea {
   color: var(--text-secondary);
   font-weight: 500;
   transition: var(--transition-fast);
-  padding: 8px 12px;
-  border-radius: var(--border-radius-sm);
+  padding: 8px 16px;
+  border-radius: var(--border-radius-xl);
+  background-color: var(--primary-color);
+  color: #000;
+  box-shadow: var(--shadow-sm);
 }
 .auth-link:hover {
-  color: var(--primary-color);
-  background-color: rgba(255,255,255,0.05);
+  background-color: var(--primary-dark);
+  color: #000;
+  transform: translateY(-2px);
 }
 @media (max-width: 600px) {
   .hide-mobile { display: none; }
-  .auth-link { padding: 8px; gap: 4px; }
+  .auth-link { padding: 8px; gap: 4px; border-radius: 50%; }
   .logo-icon { width: 24px; height: 24px; }
   .navbar-container { padding: 0 10px; }
 }
