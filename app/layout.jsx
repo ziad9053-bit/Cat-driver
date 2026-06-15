@@ -3,13 +3,13 @@ import { CartProvider } from '../context/CartContext';
 import Navbar from './components/Navbar';
 
 export const metadata = {
-  title: 'Freshly - Premium Produce Delivery',
-  description: 'Order fresh vegetables and fruits directly from the store.',
+  title: 'Cat Driver Store - متجر كات درايفر',
+  description: 'خدمة التوصيل الفاخرة لاحتياجاتك اليومية.',
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="ar" dir="rtl">
       <body>
         <CartProvider>
           <div className="app-layout">

@@ -32,6 +32,7 @@ CREATE TABLE Products (
     is_offer BOOLEAN DEFAULT FALSE,
     offer_label VARCHAR(100),
     offer_color VARCHAR(7), -- HEX color (e.g., #FF0000)
+    image_url VARCHAR(500),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
