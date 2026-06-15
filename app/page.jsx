@@ -7,6 +7,16 @@ import './catalog.css';
 export default function ProductCatalog() {
   const { products, cart, updateQuantity, loading } = useCart();
 
+  const [activeCategory, setActiveCategory] = useState('All');
+  
+  // Define the main 3 categories as requested
+  const categoriesList = [
+    { id: 'All', name: 'الكل' },
+    { id: 1, name: 'خضار' },
+    { id: 2, name: 'بقوليات' },
+    { id: 3, name: 'فواكه' }
+  ];
+
   if (loading) {
     return (
       <div className="page-wrapper animate-fade-in">
@@ -17,21 +27,49 @@ export default function ProductCatalog() {
     );
   }
 
+  // Filter products by category
+  const filteredProducts = activeCategory === 'All' 
+    ? products 
+    : products.filter(p => p.category_id == activeCategory);
+
   return (
     <div className="page-wrapper animate-fade-in">
-      <header className="page-header" style={{textAlign: 'center', margin: '40px 0'}}>
+      <header className="page-header" style={{textAlign: 'center', margin: '20px 0'}}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>متجر كات درايفر</h1>
         <p style={{ color: 'var(--text-secondary)' }}>خدمة التوصيل الفاخرة لاحتياجاتك اليومية.</p>
       </header>
 
-      {products.length === 0 ? (
+      {/* Sticky Categories Bar */}
+      <div className="sticky-bar glass">
+        <div className="categories-filter">
+          {categoriesList.map(cat => (
+            <button 
+              key={cat.id} 
+              className={`filter-btn ${activeCategory === cat.id ? 'active' : ''}`}
+              onClick={() => setActiveCategory(cat.id)}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+        
+        {/* Cart Icon in Sticky Bar */}
+        <button className="sticky-cart-btn" onClick={() => window.location.href = '/cart'}>
+          <ShoppingBag size={24} />
+          {Object.keys(cart).length > 0 && (
+            <span className="cart-badge">{Object.values(cart).reduce((a, b) => a + b, 0)}</span>
+          )}
+        </button>
+      </div>
+
+      {filteredProducts.length === 0 ? (
         <div className="empty-state glass">
           <ShoppingBag size={48} className="empty-icon" />
-          <p>لا توجد منتجات متاحة حالياً.</p>
+          <p>لا توجد منتجات متاحة في هذا القسم حالياً.</p>
         </div>
       ) : (
         <div className="products-grid">
-          {products.map((product, index) => {
+          {filteredProducts.map((product, index) => {
             const quantity = cart[product.id] || 0;
             const unitTranslations = {
               'Kilo': 'كيلو',
