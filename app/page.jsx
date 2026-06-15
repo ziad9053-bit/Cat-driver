@@ -18,10 +18,10 @@ export default function CartCheckout() {
 
   // Real-time Price Sync (Mockup logic simulating the requirement)
   useEffect(() => {
-    // We listen to changes on the Products table to update prices instantly
+    // We listen to changes on the products table to update prices instantly
     const channel = supabase
       .channel('realtime_prices')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Products' }, (payload) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'products' }, (payload) => {
         setItems(currentItems => 
           currentItems.map(item => {
             if (item.product_id === payload.new.id) {
@@ -74,9 +74,70 @@ export default function CartCheckout() {
       return;
     }
     
-    // Create user (or find existing by phone), create order, create order items...
-    // In a full implementation, we'd call Supabase RPC or insert sequentially
-    alert('Order Submitted Successfully! Thank you.');
+    try {
+      // 1. Check if user exists by phone
+      let { data: existingUsers } = await supabase
+        .from('users')
+        .select('id')
+        .eq('phone', customerPhone)
+        .limit(1);
+        
+      let userId = existingUsers?.[0]?.id;
+      
+      if (!userId) {
+        // Create new user
+        const { data: newUser, error: userErr } = await supabase
+          .from('users')
+          .insert({ name: customerName, phone: customerPhone, location_gps: gpsLocation, role: 'Customer' })
+          .select()
+          .single();
+          
+        if (userErr) throw userErr;
+        userId = newUser.id;
+      }
+      
+      // 2. Create Order
+      const { data: order, error: orderErr } = await supabase
+        .from('orders')
+        .insert({ user_id: userId, total_price: finalTotal, status: 'Pending' })
+        .select()
+        .single();
+        
+      if (orderErr) throw orderErr;
+      
+      // 3. Create Order Items
+      const orderItems = items.map(item => ({
+        order_id: order.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        price_at_purchase: item.price
+      }));
+      
+      const { error: itemsErr } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+        
+      if (itemsErr) throw itemsErr;
+      
+      // 4. Create Invoice
+      const { error: invoiceErr } = await supabase
+        .from('invoices')
+        .insert({
+          order_id: order.id,
+          payment_method: paymentMethod,
+          payment_status: paymentMethod === 'Card' ? 'Paid' : 'Pending',
+          delivery_fee: deliveryFee
+        });
+        
+      if (invoiceErr) throw invoiceErr;
+
+      alert('Order Submitted Successfully! Thank you.');
+      setItems([]); // Clear cart
+      
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Error submitting order: ' + error.message);
+    }
   };
 
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
