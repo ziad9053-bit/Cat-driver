@@ -33,6 +33,14 @@ export default function ProductCatalog() {
         <div className="products-grid">
           {products.map((product, index) => {
             const quantity = cart[product.id] || 0;
+            const unitTranslations = {
+              'Kilo': 'كيلو',
+              'SmallBox': 'فلين صغير',
+              'MediumBox': 'فلين وسط',
+              'LargeBox': 'فلين كبير',
+              'Box': 'صندوق' // legacy
+            };
+            const unitName = unitTranslations[product.unit_type] || product.unit_type;
             
             return (
               <div 
@@ -56,7 +64,7 @@ export default function ProductCatalog() {
                   </div>
                   <div className="product-price">
                     <span className="price-value">{Number(product.current_price).toFixed(2)} ريال</span>
-                    <span className="price-unit">/ {product.unit_type === 'Kilo' ? 'كيلو' : 'صندوق'}</span>
+                    <span className="price-unit">/ {unitName}</span>
                   </div>
                 </div>
 
