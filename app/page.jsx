@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import './catalog.css';
