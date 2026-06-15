@@ -12,22 +12,28 @@ export default function AdminDashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingProductId, setEditingProductId] = useState(null);
 
-  // Fetch products
-  const fetchProducts = async () => {
-    const { data, error } = await supabase
+  const [categories, setCategories] = useState([]);
+
+  // Fetch products and categories
+  const fetchData = async () => {
+    const { data: prods, error: prodErr } = await supabase
       .from('products')
       .select('*')
       .order('created_at', { ascending: false });
       
-    if (error) {
-      console.error('Error fetching products:', error);
-    } else {
-      setProducts(data || []);
-    }
+    if (prodErr) console.error('Error fetching products:', prodErr);
+    else setProducts(prods || []);
+
+    const { data: cats, error: catErr } = await supabase
+      .from('categories')
+      .select('*');
+
+    if (catErr) console.error('Error fetching categories:', catErr);
+    else setCategories(cats || []);
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchData();
   }, []);
 
   // Form State
@@ -42,12 +48,6 @@ export default function AdminDashboard() {
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
-  
-  const categories = [
-    { id: 1, name: 'خضار' },
-    { id: 2, name: 'بقوليات' },
-    { id: 3, name: 'فواكه' }
-  ];
 
   const handleImageCapture = async (e) => {
     const file = e.target.files[0];
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
         alert('حدث خطأ أثناء الحذف: ' + error.message);
       } else {
         alert('تم الحذف بنجاح!');
-        fetchProducts();
+        fetchData();
       }
     }
   };
@@ -127,7 +127,7 @@ export default function AdminDashboard() {
         name: formData.name,
         current_price: parseFloat(formData.price),
         unit_type: formData.unit_type,
-        category_id: parseInt(formData.category_id) || categories[0].id,
+        category_id: formData.category_id || (categories.length > 0 ? categories[0].id : null),
         is_offer: formData.is_offer,
         offer_label: formData.is_offer ? formData.offer_label : null,
         offer_color: formData.is_offer ? formData.offer_color : null,
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
       
       alert(editingProductId ? 'تم تحديث المنتج بنجاح!' : 'تم إضافة المنتج بنجاح!');
       resetForm();
-      fetchProducts();
+      fetchData();
     } catch (err) {
       alert('فشل في حفظ المنتج: ' + err.message);
     } finally {

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import './catalog.css';
@@ -9,14 +10,19 @@ export default function ProductCatalog() {
   const { products, cart, updateQuantity, loading } = useCart();
 
   const [activeCategory, setActiveCategory] = useState('All');
+  const [categoriesList, setCategoriesList] = useState([{ id: 'All', name: 'الكل' }]);
   
-  // Define the main 3 categories as requested
-  const categoriesList = [
-    { id: 'All', name: 'الكل' },
-    { id: 1, name: 'خضار' },
-    { id: 2, name: 'بقوليات' },
-    { id: 3, name: 'فواكه' }
-  ];
+  // Fetch dynamic categories
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      const { data, error } = await supabase.from('categories').select('*');
+      if (data && data.length > 0) {
+        setCategoriesList([{ id: 'All', name: 'الكل' }, ...data]);
+      }
+    };
+    loadCategories();
+  }, []);
 
   if (loading) {
     return (
