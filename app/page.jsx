@@ -10,8 +10,8 @@ export default function ProductCatalog() {
   if (loading) {
     return (
       <div className="page-wrapper animate-fade-in">
-        <div className="glass loading-card">
-          <h1>Loading Fresh Produce... 🍃</h1>
+        <div className="glass loading-card" style={{textAlign: 'center', padding: '40px'}}>
+          <h1 style={{ color: 'var(--primary-color)' }}>Loading Cat Driver... 🚚</h1>
         </div>
       </div>
     );
@@ -19,9 +19,9 @@ export default function ProductCatalog() {
 
   return (
     <div className="page-wrapper animate-fade-in">
-      <header className="page-header">
-        <h1>Fresh Produce Catalog</h1>
-        <p>Direct from the farm to your door.</p>
+      <header className="page-header" style={{textAlign: 'center', margin: '40px 0'}}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>Cat Driver Store</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>Premium delivery service for your daily needs.</p>
       </header>
 
       {products.length === 0 ? (

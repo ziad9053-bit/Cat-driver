@@ -1,5 +1,5 @@
 -- Enum Types
-CREATE TYPE user_role AS ENUM ('Customer', 'Admin', 'Driver');
+CREATE TYPE user_role AS ENUM ('Customer', 'Admin', 'Driver', 'Preparer');
 CREATE TYPE unit_type AS ENUM ('Kilo', 'Box');
 CREATE TYPE order_status AS ENUM ('Pending', 'Processing', 'OnTheWay', 'Delivered', 'Cancelled');
 CREATE TYPE payment_method AS ENUM ('Cash', 'Card');

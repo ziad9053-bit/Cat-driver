@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingCart, Leaf } from 'lucide-react';
+import { ShoppingCart, ShieldCheck, Truck } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 
 export default function Navbar() {
@@ -10,11 +10,24 @@ export default function Navbar() {
   return (
     <nav className="navbar glass">
       <div className="navbar-container">
-        <Link href="/" className="logo">
-          <Leaf className="logo-icon" />
-          <span>Freshly</span>
+        {/* Admin Login (Top Left) */}
+        <Link href="/login/admin" className="auth-link admin-link">
+          <ShieldCheck size={20} />
+          <span className="hide-mobile">Admin Login</span>
         </Link>
+
+        {/* Logo (Center) */}
+        <Link href="/" className="logo" style={{justifyContent: 'center', flex: 1, textAlign: 'center'}}>
+          <Truck className="logo-icon" size={28} />
+          <span style={{ color: 'var(--primary-color)' }}>Cat Driver</span>
+        </Link>
+
+        {/* Worker Login & Cart (Top Right) */}
         <div className="nav-links">
+          <Link href="/login/worker" className="auth-link worker-link">
+            <span className="hide-mobile">Worker Login</span>
+          </Link>
+          
           <Link href="/cart" className="cart-link">
             <ShoppingCart size={24} />
             {cartItemsCount > 0 && (

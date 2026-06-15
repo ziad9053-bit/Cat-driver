@@ -2,44 +2,42 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --primary-color: #2E7D32; 
-  --primary-dark: #1B5E20;
-  --primary-light: #4CAF50;
-  --accent-color: #FFC107; 
+  --primary-color: #D4AF37; /* Gold */
+  --primary-dark: #B5952F;
+  --primary-light: #F3E5AB;
+  --accent-color: #E65100; /* Deep Orange */
   
-  --background-color: #F9FAF8;
-  --surface-color: #FFFFFF;
-  --text-primary: #1F2937;
-  --text-secondary: #4B5563;
-  --text-tertiary: #9CA3AF;
+  /* Enforce Dark Theme as default for Premium Feel */
+  --background-color: #0A0A0A;
+  --surface-color: #1A1A1A;
+  --text-primary: #F5F5F5;
+  --text-secondary: #B0B0B0;
+  --text-tertiary: #757575;
   
-  --error-color: #EF4444;
-  --success-color: #10B981;
+  --error-color: #EF5350;
+  --success-color: #66BB6A;
   
   --border-radius-sm: 8px;
   --border-radius-md: 16px;
   --border-radius-lg: 24px;
   --border-radius-xl: 32px;
   
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-  --shadow-lg: 0 12px 24px rgba(0,0,0,0.12);
+  --shadow-sm: 0 4px 6px rgba(0,0,0,0.3);
+  --shadow-md: 0 8px 15px rgba(0,0,0,0.4);
+  --shadow-lg: 0 15px 35px rgba(0,0,0,0.5);
   
   --transition-fast: 0.2s ease;
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --navbar-height: 70px;
+  --navbar-height: 80px;
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
+  /* Keep it dark anyway or slightly lighter dark for premium */
   :root {
     --background-color: #121212;
     --surface-color: #1E1E1E;
-    --text-primary: #F3F4F6;
-    --text-secondary: #D1D5DB;
-    --text-tertiary: #6B7280;
-    --shadow-sm: 0 2px 4px rgba(0,0,0,0.2);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
-    --shadow-lg: 0 12px 24px rgba(0,0,0,0.4);
+    --text-primary: #FFFFFF;
+    --text-secondary: #CCCCCC;
   }
 }
 
@@ -257,4 +255,23 @@ input, textarea {
   padding: 4px 8px;
   border-radius: var(--border-radius-sm);
   background-color: rgba(46, 125, 50, 0.1);
+}
+/* Added styles for Navbar */
+.auth-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: var(--transition-fast);
+  padding: 8px 12px;
+  border-radius: var(--border-radius-sm);
+  margin-right: 15px;
+}
+.auth-link:hover {
+  color: var(--primary-color);
+  background-color: rgba(255,255,255,0.05);
+}
+@media (max-width: 600px) {
+  .hide-mobile { display: none; }
 }
