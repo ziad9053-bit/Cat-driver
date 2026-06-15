@@ -4,7 +4,7 @@ import './admin.css';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { convertToWebP } from '../../lib/image-utils';
-import { Plus, Camera, Image as ImageIcon, CheckCircle, Package, Edit, Trash2, X } from 'lucide-react';
+import { Plus, Camera, Image as ImageIcon, CheckCircle, Package, Edit, Trash2, X, Grid } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
@@ -48,6 +48,41 @@ export default function AdminDashboard() {
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
+
+  // Gallery State
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [loadingGallery, setLoadingGallery] = useState(false);
+
+  const fetchGalleryImages = async () => {
+    setLoadingGallery(true);
+    const { data, error } = await supabase.storage.from('products').list();
+    if (error) {
+      console.error('Error fetching gallery images:', error);
+    } else if (data) {
+      // Filter out non-image files if any and map to public URLs
+      const urls = data
+        .filter(file => file.name !== '.emptyFolderPlaceholder')
+        .map(file => {
+          const { data: { publicUrl } } = supabase.storage.from('products').getPublicUrl(file.name);
+          return { name: file.name, url: publicUrl };
+        });
+      setGalleryImages(urls);
+    }
+    setLoadingGallery(false);
+  };
+
+  const handleOpenGallery = (e) => {
+    e.preventDefault();
+    setShowGallery(true);
+    fetchGalleryImages();
+  };
+
+  const handleSelectGalleryImage = (url) => {
+    setImagePreview(url);
+    setImageFile(null); // Clear any pending local file upload since we are using an existing image
+    setShowGallery(false);
+  };
 
   const handleImageCapture = async (e) => {
     const file = e.target.files[0];
@@ -192,6 +227,9 @@ export default function AdminDashboard() {
                     <Camera size={18} /> التقاط بالكاميرا
                     <input type="file" accept="image/*" capture="environment" hidden onChange={handleImageCapture} />
                   </label>
+                  <button className="btn-gallery" onClick={handleOpenGallery}>
+                    <Grid size={18} /> مخزن الصور
+                  </button>
                 </div>
               </div>
             </div>
@@ -291,6 +329,33 @@ export default function AdminDashboard() {
           })}
         </div>
       </div>
+      {/* Image Gallery Modal */}
+      {showGallery && (
+        <div className="modal-overlay">
+          <div className="gallery-modal glass animate-slide-up">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ marginBottom: 0, color: 'var(--primary-color)' }}>مخزن الصور 🖼️</h2>
+              <button onClick={() => setShowGallery(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            {loadingGallery ? (
+              <div style={{ textAlign: 'center', padding: '40px' }}>جاري تحميل الصور...</div>
+            ) : galleryImages.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>لا توجد صور في المخزن حالياً.</div>
+            ) : (
+              <div className="gallery-grid">
+                {galleryImages.map((img, idx) => (
+                  <div key={idx} className="gallery-item" onClick={() => handleSelectGalleryImage(img.url)}>
+                    <img src={img.url} alt={img.name} loading="lazy" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
