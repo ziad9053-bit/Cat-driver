@@ -1,10 +1,11 @@
 'use client';
 import { useState } from 'react';
-
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 
 export default function AdminLogin() {
   const [password, setPassword] = useState('');
+  const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -17,7 +18,7 @@ export default function AdminLogin() {
       alert('كلمة المرور غير صحيحة أو الحساب غير موجود');
     } else {
       alert('تم تسجيل الدخول بنجاح كمدير!');
-      // TODO: Redirect to Admin Dashboard
+      router.push('/admin');
     }
   };
 
