@@ -6,18 +6,30 @@ import { MapPin, CreditCard, Banknote, Trash2, Plus, Minus, ArrowRight } from 'l
 import './cart.css';
 
 export default function CartCheckout() {
-  const [items, setItems] = useState([
-    // Mock initial data, in a real app this would come from a global state/context
-    { id: '1', product_id: 'p1', name: 'Fresh Tomatoes', unit_type: 'Kilo', price: 5.50, quantity: 2, is_offer: false },
-    { id: '2', product_id: 'p2', name: 'Premium Bananas', unit_type: 'Box', price: 45.00, quantity: 1, is_offer: true, offer_label: '20% OFF', offer_color: '#EF4444' },
-  ]);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [gpsLocation, setGpsLocation] = useState(null);
 
-  // Real-time Price Sync (Mockup logic simulating the requirement)
   useEffect(() => {
+    // Fetch actual products from Supabase
+    const fetchProducts = async () => {
+      const { data, error } = await supabase.from('products').select('*');
+      if (data) {
+        setItems(data.map(p => ({
+          ...p,
+          product_id: p.id,
+          price: p.current_price,
+          quantity: 0 // 0 quantity until user adds to cart
+        })));
+      }
+      setLoading(false);
+    };
+    
+    fetchProducts();
+
     // We listen to changes on the products table to update prices instantly
     const channel = supabase
       .channel('realtime_prices')
@@ -25,7 +37,13 @@ export default function CartCheckout() {
         setItems(currentItems => 
           currentItems.map(item => {
             if (item.product_id === payload.new.id) {
-              return { ...item, price: payload.new.current_price };
+              return { 
+                ...item, 
+                price: payload.new.current_price,
+                is_offer: payload.new.is_offer,
+                offer_label: payload.new.offer_label,
+                offer_color: payload.new.offer_color
+              };
             }
             return item;
           })
@@ -41,7 +59,7 @@ export default function CartCheckout() {
   const updateQuantity = (id, delta) => {
     setItems(items.map(item => {
       if (item.id === id) {
-        const newQty = Math.max(1, item.quantity + delta);
+        const newQty = Math.max(0, item.quantity + delta);
         return { ...item, quantity: newQty };
       }
       return item;
@@ -49,7 +67,7 @@ export default function CartCheckout() {
   };
 
   const removeItem = (id) => {
-    setItems(items.filter(item => item.id !== id));
+    setItems(items.map(item => item.id === id ? { ...item, quantity: 0 } : item));
   };
 
   const handleDropPin = () => {
@@ -105,8 +123,15 @@ export default function CartCheckout() {
         
       if (orderErr) throw orderErr;
       
-      // 3. Create Order Items
-      const orderItems = items.map(item => ({
+      // 3. Create Order Items (only for items with quantity > 0)
+      const cartItems = items.filter(item => item.quantity > 0);
+      
+      if (cartItems.length === 0) {
+        alert('Your cart is empty.');
+        return;
+      }
+      
+      const orderItems = cartItems.map(item => ({
         order_id: order.id,
         product_id: item.product_id,
         quantity: item.quantity,
@@ -132,7 +157,8 @@ export default function CartCheckout() {
       if (invoiceErr) throw invoiceErr;
 
       alert('Order Submitted Successfully! Thank you.');
-      setItems([]); // Clear cart
+      // Reset cart quantities
+      setItems(items.map(item => ({ ...item, quantity: 0 }))); 
       
     } catch (error) {
       console.error('Checkout error:', error);
@@ -141,8 +167,13 @@ export default function CartCheckout() {
   };
 
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = 15.00;
+  const deliveryFee = subtotal > 0 ? 15.00 : 0;
   const finalTotal = subtotal + deliveryFee;
+  const cartItemsCount = items.filter(i => i.quantity > 0).length;
+
+  if (loading) {
+    return <div className="cart-page"><div className="cart-header glass"><h1>Loading Store...</h1></div></div>;
+  }
 
   return (
     <div className="cart-page animate-fade-in">
@@ -152,9 +183,9 @@ export default function CartCheckout() {
 
       <div className="cart-content">
         <section className="cart-items-section animate-slide-up" style={{ animationDelay: '0.1s' }}>
-          <h2>Items</h2>
+          <h2>Products Catalog</h2>
           {items.length === 0 ? (
-            <p className="empty-cart">Your cart is empty.</p>
+            <p className="empty-cart">No products available at the moment.</p>
           ) : (
             <div className="items-list">
               {items.map(item => (
@@ -180,9 +211,11 @@ export default function CartCheckout() {
                     <div className="item-subtotal">
                       ${(item.price * item.quantity).toFixed(2)}
                     </div>
-                    <button onClick={() => removeItem(item.id)} className="delete-btn">
-                      <Trash2 size={20} />
-                    </button>
+                    {item.quantity > 0 && (
+                      <button onClick={() => removeItem(item.id)} className="delete-btn" title="Remove from cart">
+                        <Trash2 size={20} />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
