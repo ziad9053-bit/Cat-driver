@@ -4,12 +4,31 @@ import './admin.css';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { convertToWebP } from '../../lib/image-utils';
-import { Plus, Camera, Image as ImageIcon, CheckCircle, Package } from 'lucide-react';
+import { Plus, Camera, Image as ImageIcon, CheckCircle, Package, Edit, Trash2, X } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingProductId, setEditingProductId] = useState(null);
+
+  // Fetch products
+  const fetchProducts = async () => {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+      
+    if (error) {
+      console.error('Error fetching products:', error);
+    } else {
+      setProducts(data || []);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -46,12 +65,49 @@ export default function AdminDashboard() {
     }
   };
 
+  const resetForm = () => {
+    setShowAddForm(false);
+    setEditingProductId(null);
+    setFormData({ name: '', price: '', unit_type: 'Kilo', category_id: '', is_offer: false, offer_label: '', offer_color: '#E65100' });
+    setImageFile(null);
+    setImagePreview('');
+  };
+
+  const handleEditClick = (product) => {
+    setEditingProductId(product.id);
+    setFormData({
+      name: product.name,
+      price: product.current_price,
+      unit_type: product.unit_type,
+      category_id: product.category_id,
+      is_offer: product.is_offer,
+      offer_label: product.offer_label || '',
+      offer_color: product.offer_color || '#E65100'
+    });
+    setImagePreview(product.image_url || '');
+    setShowAddForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteProduct = async (id) => {
+    if (confirm('هل أنت متأكد من حذف هذا الصنف نهائياً؟')) {
+      const { error } = await supabase.from('products').delete().eq('id', id);
+      if (error) {
+        alert('حدث خطأ أثناء الحذف: ' + error.message);
+      } else {
+        alert('تم الحذف بنجاح!');
+        fetchProducts();
+      }
+    }
+  };
+
   const handleAddProduct = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      let imageUrl = null;
+      let imageUrl = editingProductId ? imagePreview : null; // keep old image if editing and no new file
+
       if (imageFile) {
         const fileName = `product_${Date.now()}.webp`;
         const { data: uploadData, error: uploadError } = await supabase.storage
@@ -67,7 +123,7 @@ export default function AdminDashboard() {
         imageUrl = publicUrl;
       }
 
-      const { data, error } = await supabase.from('products').insert([{
+      const productPayload = {
         name: formData.name,
         current_price: parseFloat(formData.price),
         unit_type: formData.unit_type,
@@ -76,18 +132,24 @@ export default function AdminDashboard() {
         offer_label: formData.is_offer ? formData.offer_label : null,
         offer_color: formData.is_offer ? formData.offer_color : null,
         image_url: imageUrl
-      }]);
+      };
+
+      let error;
+      if (editingProductId) {
+        const { error: updateError } = await supabase.from('products').update(productPayload).eq('id', editingProductId);
+        error = updateError;
+      } else {
+        const { error: insertError } = await supabase.from('products').insert([productPayload]);
+        error = insertError;
+      }
 
       if (error) throw error;
       
-      alert('تم إضافة المنتج بنجاح!');
-      setShowAddForm(false);
-      setFormData({ name: '', price: '', unit_type: 'Kilo', category_id: '', is_offer: false, offer_label: '', offer_color: '#E65100' });
-      setImageFile(null);
-      setImagePreview('');
-      // Trigger refresh or update state here if needed
+      alert(editingProductId ? 'تم تحديث المنتج بنجاح!' : 'تم إضافة المنتج بنجاح!');
+      resetForm();
+      fetchProducts();
     } catch (err) {
-      alert('فشل في إضافة المنتج: ' + err.message);
+      alert('فشل في حفظ المنتج: ' + err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -104,7 +166,12 @@ export default function AdminDashboard() {
 
       {showAddForm && (
         <div className="glass admin-form-card animate-slide-up">
-          <h2>إضافة صنف جديد</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ marginBottom: 0 }}>{editingProductId ? 'تعديل صنف' : 'إضافة صنف جديد'}</h2>
+            <button onClick={resetForm} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+              <X size={24} />
+            </button>
+          </div>
           <form onSubmit={handleAddProduct} className="admin-form">
             
             <div className="form-group">
@@ -184,11 +251,46 @@ export default function AdminDashboard() {
             )}
 
             <button type="submit" className="btn-submit" disabled={isSubmitting}>
-              {isSubmitting ? 'جاري الحفظ والرفع...' : 'حفظ وإضافة للمتجر'}
+              {isSubmitting ? 'جاري الحفظ والرفع...' : (editingProductId ? 'حفظ التعديلات' : 'حفظ وإضافة للمتجر')}
             </button>
           </form>
         </div>
       )}
+
+      {/* Admin Products List */}
+      <div className="admin-products-section" style={{ marginTop: '40px' }}>
+        <h2 style={{ marginBottom: '20px', color: 'var(--primary-color)' }}>المنتجات الحالية ({products.length})</h2>
+        <div className="admin-products-grid">
+          {products.map(product => {
+            const unitTranslations = { 'Kilo': 'كيلو', 'SmallBox': 'فلين صغير', 'MediumBox': 'فلين وسط', 'LargeBox': 'فلين كبير', 'Box': 'صندوق' };
+            const unitName = unitTranslations[product.unit_type] || product.unit_type;
+            const categoryName = categories.find(c => c.id == product.category_id)?.name || 'غير مصنف';
+
+            return (
+              <div key={product.id} className="admin-product-card glass">
+                {product.image_url && (
+                  <div className="admin-product-img">
+                    <img src={product.image_url} alt={product.name} />
+                  </div>
+                )}
+                <div className="admin-product-info">
+                  <h3>{product.name}</h3>
+                  <p className="admin-product-price">{product.current_price} ريال / {unitName}</p>
+                  <span className="admin-product-category">{categoryName}</span>
+                </div>
+                <div className="admin-product-actions">
+                  <button onClick={() => handleEditClick(product)} className="btn-edit" title="تعديل">
+                    <Edit size={18} />
+                  </button>
+                  <button onClick={() => handleDeleteProduct(product.id)} className="btn-delete" title="حذف">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
