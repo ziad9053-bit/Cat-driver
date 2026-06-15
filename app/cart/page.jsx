@@ -39,11 +39,11 @@ export default function CartCheckout() {
 
   const submitOrder = async () => {
     if (cartItems.length === 0) {
-      alert('Your cart is empty.');
+      alert('سلتك فارغة!');
       return;
     }
     if (!customerName || !customerPhone || !gpsLocation) {
-      alert('Please fill all details and drop a pin for your location.');
+      alert('يرجى تعبئة جميع البيانات وتحديد موقعك على الخريطة.');
       return;
     }
     
@@ -106,13 +106,13 @@ export default function CartCheckout() {
         
       if (invoiceErr) throw invoiceErr;
 
-      alert('Order Submitted Successfully! Thank you.');
+      alert('تم إرسال طلبك بنجاح! شكراً لتسوقك معنا.');
       clearCart();
       router.push('/');
       
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('Error submitting order: ' + error.message);
+      alert('حدث خطأ أثناء إرسال الطلب: ' + error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -132,28 +132,38 @@ export default function CartCheckout() {
     <div className="cart-page animate-fade-in">
       <header className="page-header">
         <Link href="/" className="back-link">
-          <ArrowLeft size={20} />
-          <span>Back to Catalog</span>
+          <ArrowRight size={20} />
+          <span>العودة للمتجر</span>
         </Link>
-        <h1>Checkout</h1>
+        <h1>إتمام الطلب</h1>
       </header>
 
       <div className="cart-content">
         <section className="cart-items-section animate-slide-up" style={{ animationDelay: '0.1s' }}>
-          <h2>Your Cart</h2>
+          <h2>سلة مشترياتك</h2>
           {cartItems.length === 0 ? (
             <div className="empty-cart glass">
-              <p>Your cart is currently empty.</p>
-              <Link href="/" className="continue-shopping">Browse Catalog</Link>
+              <p>سلتك فارغة حالياً.</p>
+              <Link href="/" className="continue-shopping">تصفح المنتجات</Link>
             </div>
           ) : (
             <div className="items-list">
-              {cartItems.map(item => (
+              {cartItems.map(item => {
+                const unitTranslations = {
+                  'Kilo': 'كيلو',
+                  'SmallBox': 'فلين صغير',
+                  'MediumBox': 'فلين وسط',
+                  'LargeBox': 'فلين كبير',
+                  'Box': 'صندوق'
+                };
+                const unitName = unitTranslations[item.unit_type] || item.unit_type;
+
+                return (
                 <div key={item.product_id} className="cart-item glass">
                   <div className="item-details">
                     <h3>{item.name}</h3>
                     <div className="item-price-row">
-                      <span className="price">${Number(item.price).toFixed(2)} / {item.unit_type}</span>
+                      <span className="price">{Number(item.price).toFixed(2)} ريال / {unitName}</span>
                       {item.is_offer && (
                         <span className="offer-badge" style={{ backgroundColor: item.offer_color || 'var(--accent-color)' }}>
                           {item.offer_label}
@@ -169,14 +179,15 @@ export default function CartCheckout() {
                       <button onClick={() => updateQuantity(item.product_id, 1)} className="qty-btn"><Plus size={16} /></button>
                     </div>
                     <div className="item-subtotal">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      {Number(item.price * item.quantity).toFixed(2)} ريال
                     </div>
-                    <button onClick={() => removeItem(item.product_id)} className="delete-btn" title="Remove from cart">
+                    <button onClick={() => removeItem(item.product_id)} className="delete-btn" title="حذف من السلة">
                       <Trash2 size={20} />
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
@@ -184,11 +195,11 @@ export default function CartCheckout() {
         {cartItems.length > 0 && (
           <>
             <section className="customer-section glass animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <h2>Delivery Details</h2>
+              <h2>تفاصيل التوصيل</h2>
               <div className="input-group">
                 <input 
                   type="text" 
-                  placeholder="Full Name" 
+                  placeholder="الاسم الكامل" 
                   value={customerName}
                   onChange={e => setCustomerName(e.target.value)}
                   className="custom-input"
@@ -197,7 +208,7 @@ export default function CartCheckout() {
               <div className="input-group">
                 <input 
                   type="tel" 
-                  placeholder="Phone Number" 
+                  placeholder="رقم الجوال" 
                   value={customerPhone}
                   onChange={e => setCustomerPhone(e.target.value)}
                   className="custom-input"
@@ -205,12 +216,12 @@ export default function CartCheckout() {
               </div>
               <button className={`pin-btn ${gpsLocation ? 'success' : ''}`} onClick={handleDropPin}>
                 <MapPin size={20} />
-                {gpsLocation ? 'Location Captured ✓' : 'Drop a Pin 📍'}
+                {gpsLocation ? 'تم التقاط الموقع بنجاح ✓' : 'تحديد موقعي 📍'}
               </button>
             </section>
 
             <section className="payment-section glass animate-slide-up" style={{ animationDelay: '0.3s' }}>
-              <h2>Payment Method</h2>
+              <h2>طريقة الدفع</h2>
               <div className="payment-options">
                 <label className={`payment-card ${paymentMethod === 'Cash' ? 'active' : ''}`}>
                   <input 
@@ -222,7 +233,7 @@ export default function CartCheckout() {
                     hidden
                   />
                   <Banknote size={24} />
-                  <span>Cash on Delivery</span>
+                  <span>الدفع عند الاستلام</span>
                 </label>
                 <label className={`payment-card ${paymentMethod === 'Card' ? 'active' : ''}`}>
                   <input 
@@ -234,23 +245,23 @@ export default function CartCheckout() {
                     hidden
                   />
                   <CreditCard size={24} />
-                  <span>Card Payment</span>
+                  <span>بطاقة بنكية / أبل باي</span>
                 </label>
               </div>
             </section>
 
             <section className="summary-section glass animate-slide-up" style={{ animationDelay: '0.4s' }}>
               <div className="summary-row">
-                <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>المجموع الفرعي</span>
+                <span>{subtotal.toFixed(2)} ريال</span>
               </div>
               <div className="summary-row">
-                <span>Delivery Fee</span>
-                <span>${deliveryFee.toFixed(2)}</span>
+                <span>رسوم التوصيل</span>
+                <span>{deliveryFee.toFixed(2)} ريال</span>
               </div>
               <div className="summary-row total">
-                <span>Final Total</span>
-                <span>${finalTotal.toFixed(2)}</span>
+                <span>الإجمالي الكلي</span>
+                <span>{finalTotal.toFixed(2)} ريال</span>
               </div>
             </section>
           </>
@@ -260,7 +271,7 @@ export default function CartCheckout() {
       {cartItems.length > 0 && (
         <div className="sticky-footer glass animate-slide-up" style={{ animationDelay: '0.5s' }}>
           <button className="submit-btn" onClick={submitOrder} disabled={isSubmitting}>
-            <span>{isSubmitting ? 'Processing...' : 'Submit Order'}</span>
+            <span>{isSubmitting ? 'جاري إرسال الطلب...' : 'إرسال الطلب'}</span>
             <ArrowRight size={20} />
           </button>
         </div>
