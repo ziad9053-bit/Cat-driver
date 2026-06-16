@@ -47,6 +47,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent; /* Remove Safari tap highlight */
 }
 
 body {
@@ -55,6 +56,12 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none; /* Prevent pull-to-refresh / bounce effect */
+  -webkit-overflow-scrolling: touch;
+}
+
+a, button, input, select, textarea {
+  touch-action: manipulation; /* Eliminate 300ms tap delay and double-tap zoom */
 }
 
 a {
@@ -103,7 +110,7 @@ input:focus, textarea:focus, select:focus {
   margin: 0 auto;
   width: 100%;
   padding-top: calc(var(--navbar-height) + 20px);
-  padding-bottom: 40px;
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
   position: relative;
   background-color: var(--background-color);
 }
