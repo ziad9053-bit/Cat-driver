@@ -174,9 +174,10 @@ export default function PreparerDashboard() {
       return (
         <button
           className="btn-primary full-width"
+          style={{ backgroundColor: '#ff4d4f', border: 'none', boxShadow: '0 4px 15px rgba(255, 77, 79, 0.4)' }}
           onClick={() => handleStartPacking(selectedOrder.id)}
         >
-          البدء بالتحضير
+          البدء بالتحضير 📦
         </button>
       );
     }
@@ -230,8 +231,11 @@ export default function PreparerDashboard() {
                     </div>
                     <p>العميل: {order.users?.name}</p>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '5px' }}>
-                      <span className={`status-badge ${order.status}`}>
-                        {order.status === 'Pending' ? 'جديد' : 'جاري التحضير'}
+                      <span 
+                        className={`status-badge ${order.status}`}
+                        style={order.status === 'Pending' ? { backgroundColor: '#ff4d4f', color: 'white', fontWeight: 'bold', boxShadow: '0 0 10px rgba(255, 77, 79, 0.4)' } : {}}
+                      >
+                        {order.status === 'Pending' ? 'جديد 🚨' : 'جاري التحضير ⏳'}
                       </span>
                       {order.delivery_type === 'Pickup' && (
                         <span className="status-badge" style={{ backgroundColor: '#ff9800', color: '#fff' }}>
