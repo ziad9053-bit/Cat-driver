@@ -28,7 +28,7 @@ export default function ProductCatalog() {
           return 0;
         });
         setCategoriesList(ordered);
-        setActiveCategory(ordered[0].id); // Select first category by default
+        setActiveCategory(null); // Keep as null by default to show category landing rows
       }
     };
     loadCategories();
@@ -73,6 +73,28 @@ export default function ProductCatalog() {
         paddingBottom: 'env(safe-area-inset-bottom)',
         boxShadow: '0 -4px 20px rgba(0,0,0,0.4)'
       }}>
+        {/* Home Button */}
+        <button 
+          onClick={() => setActiveCategory(null)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: activeCategory === null ? 'var(--primary-color)' : 'var(--text-secondary)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '4px',
+            cursor: 'pointer',
+            transition: 'var(--transition-fast)',
+            fontSize: '0.85rem',
+            fontWeight: activeCategory === null ? 'bold' : 'normal',
+            flex: 1
+          }}
+        >
+          <Home size={22} />
+          <span>الرئيسية</span>
+        </button>
+
         {categoriesList.map(cat => {
           let icon = <Leaf size={22} />;
           if (cat.name.includes('خضار')) icon = <Carrot size={22} />;
@@ -150,72 +172,165 @@ export default function ProductCatalog() {
         </button>
       </div>
 
-      {filteredProducts.length === 0 ? (
-        <div className="empty-state glass">
-          <ShoppingBag size={48} className="empty-icon" />
-          <p>لا توجد منتجات متاحة في هذا القسم حالياً.</p>
-        </div>
-      ) : (
-        <div className="products-grid">
-          {filteredProducts.map((product, index) => {
-            const quantity = cart[product.id] || 0;
-            const unitTranslations = {
-              'Kilo': 'كيلو',
-              'SmallBox': 'فلين صغير',
-              'MediumBox': 'فلين وسط',
-              'LargeBox': 'فلين كبير',
-              'Box': 'صندوق' // legacy
-            };
-            const unitName = unitTranslations[product.unit_type] || product.unit_type;
+      {activeCategory === null ? (
+        /* Home Dashboard Category Rows */
+        <div className="category-rows-container" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+          marginTop: '20px'
+        }}>
+          {categoriesList.map(cat => {
+            let bgImage = 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&q=80';
+            let subtitle = 'طازجة يومياً من المزرعة إليك';
+            let icon = '🥕';
             
+            if (cat.name.includes('بقول')) {
+              bgImage = 'https://images.unsplash.com/photo-1574316071802-0d684efa7bf5?w=800&q=80';
+              subtitle = 'حبوب وبقوليات منتقاة بجودة عالية';
+              icon = '🌾';
+            } else if (cat.name.includes('فواك')) {
+              bgImage = 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=800&q=80';
+              subtitle = 'فواكه موسمية غنية بالفيتامينات';
+              icon = '🍎';
+            }
+
             return (
               <div 
-                key={product.id} 
-                className="product-card glass animate-slide-up"
-                style={{ animationDelay: `${index * 0.05}s` }}
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className="category-row-card glass"
+                style={{
+                  position: 'relative',
+                  height: '160px',
+                  borderRadius: 'var(--border-radius-lg)',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: 'var(--shadow-md)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                }}
               >
-                {product.image_url && (
-                  <div className="product-image" style={{ width: '100%', height: '200px', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', marginBottom: '10px' }}>
-                    <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </div>
-                )}
-                <div className="product-info">
-                  <div className="product-header">
-                    <h3>{product.name}</h3>
-                    {product.is_offer && (
-                      <span className="offer-badge" style={{ backgroundColor: product.offer_color || 'var(--accent-color)' }}>
-                        {product.offer_label}
-                      </span>
-                    )}
-                  </div>
-                  <div className="product-price">
-                    <span className="price-value">{Number(product.current_price).toFixed(2)} ريال</span>
-                    <span className="price-unit">/ {unitName}</span>
-                  </div>
-                </div>
+                {/* Background Image with Overlay */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundImage: `url(${bgImage})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  zIndex: 1
+                }}></div>
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(135deg, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.3) 100%)',
+                  zIndex: 2
+                }}></div>
 
-                <div className="product-actions">
-                  {quantity === 0 ? (
-                    <button className="add-to-cart-btn" onClick={() => updateQuantity(product.id, 1)}>
-                      <Plus size={18} />
-                      <span>إضافة للسلة</span>
-                    </button>
-                  ) : (
-                    <div className="quantity-selector">
-                      <button className="qty-btn" onClick={() => updateQuantity(product.id, -1)}>
-                        <Minus size={18} />
-                      </button>
-                      <span className="qty-value">{quantity}</span>
-                      <button className="qty-btn" onClick={() => updateQuantity(product.id, 1)}>
-                        <Plus size={18} />
-                      </button>
-                    </div>
-                  )}
+                {/* Content */}
+                <div style={{
+                  position: 'relative',
+                  zIndex: 3,
+                  textAlign: 'center',
+                  color: 'white',
+                  padding: '20px'
+                }}>
+                  <h2 style={{ fontSize: '1.8rem', margin: 0, fontWeight: '800', color: 'var(--primary-color)', textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}>
+                    {cat.name} {icon}
+                  </h2>
+                  <p style={{ margin: '8px 0 0 0', color: 'rgba(255,255,255,0.85)', fontSize: '1.05rem', fontWeight: '500' }}>
+                    {subtitle}
+                  </p>
                 </div>
               </div>
             );
           })}
         </div>
+      ) : (
+        /* Products Grid */
+        filteredProducts.length === 0 ? (
+          <div className="empty-state glass">
+            <ShoppingBag size={48} className="empty-icon" />
+            <p>لا توجد منتجات متاحة في هذا القسم حالياً.</p>
+          </div>
+        ) : (
+          <div className="products-grid">
+            {filteredProducts.map((product, index) => {
+              const quantity = cart[product.id] || 0;
+              const unitTranslations = {
+                'Kilo': 'كيلو',
+                'SmallBox': 'فلين صغير',
+                'MediumBox': 'فلين وسط',
+                'LargeBox': 'فلين كبير',
+                'Box': 'صندوق' // legacy
+              };
+              const unitName = unitTranslations[product.unit_type] || product.unit_type;
+              
+              return (
+                <div 
+                  key={product.id} 
+                  className="product-card glass animate-slide-up"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  {product.image_url && (
+                    <div className="product-image" style={{ width: '100%', height: '200px', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', marginBottom: '10px' }}>
+                      <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  )}
+                  <div className="product-info">
+                    <div className="product-header">
+                      <h3>{product.name}</h3>
+                      {product.is_offer && (
+                        <span className="offer-badge" style={{ backgroundColor: product.offer_color || 'var(--accent-color)' }}>
+                          {product.offer_label}
+                        </span>
+                      )}
+                    </div>
+                    <div className="product-price">
+                      <span className="price-value">{Number(product.current_price).toFixed(2)} ريال</span>
+                      <span className="price-unit">/ {unitName}</span>
+                    </div>
+                  </div>
+
+                  <div className="product-actions">
+                    {quantity === 0 ? (
+                      <button className="add-to-cart-btn" onClick={() => updateQuantity(product.id, 1)}>
+                        <Plus size={18} />
+                        <span>إضافة للسلة</span>
+                      </button>
+                    ) : (
+                      <div className="quantity-selector">
+                        <button className="qty-btn" onClick={() => updateQuantity(product.id, -1)}>
+                          <Minus size={18} />
+                        </button>
+                        <span className="qty-value">{quantity}</span>
+                        <button className="qty-btn" onClick={() => updateQuantity(product.id, 1)}>
+                          <Plus size={18} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )
       )}
     </div>
   );
