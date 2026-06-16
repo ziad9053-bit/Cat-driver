@@ -83,13 +83,25 @@ function OrderTrackingContent() {
 
   // Determine current step
   // Steps: 1. Pending -> 2. Processing -> 3. Processing & is_packed -> 4. OnTheWay -> 5. Delivered
-  let currentStep = 1;
-  if (order.status === 'Delivered') currentStep = 5;
-  else if (order.status === 'OnTheWay') currentStep = 4;
-  else if (order.is_packed) currentStep = 3;
-  else if (order.status === 'Processing') currentStep = 2;
+  const isPickup = order.delivery_type === 'Pickup';
 
-  const steps = [
+  let currentStep = 1;
+  if (isPickup) {
+    if (order.status === 'Completed' || order.status === 'Delivered') currentStep = 3;
+    else if (order.is_packed) currentStep = 3;
+    else if (order.status === 'Processing') currentStep = 2;
+  } else {
+    if (order.status === 'Delivered') currentStep = 5;
+    else if (order.status === 'OnTheWay') currentStep = 4;
+    else if (order.is_packed) currentStep = 3;
+    else if (order.status === 'Processing') currentStep = 2;
+  }
+
+  const steps = isPickup ? [
+    { num: 1, title: 'تم استلام الطلب', icon: <Clock size={24} /> },
+    { num: 2, title: 'جاري التحضير', icon: <Package size={24} /> },
+    { num: 3, title: 'جاهز للاستلام', icon: <CheckCircle size={24} /> }
+  ] : [
     { num: 1, title: 'تم استلام الطلب', icon: <Clock size={24} /> },
     { num: 2, title: 'جاري التحضير', icon: <Package size={24} /> },
     { num: 3, title: 'جاهز للسائق', icon: <CheckCircle size={24} /> },
@@ -105,12 +117,17 @@ function OrderTrackingContent() {
         </Link>
         <h1 style={{ color: 'var(--primary-color)', margin: '10px 0 0 0' }}>{settings?.track_title || 'تتبع طلبك'}</h1>
         <p style={{ color: 'var(--text-secondary)', margin: '5px 0 0 0' }}>رقم الطلب: {order.id.split('-')[0].toUpperCase()}</p>
+        {isPickup && (
+          <span style={{ display: 'inline-block', marginTop: '10px', backgroundColor: '#ff9800', color: '#fff', padding: '4px 12px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 'bold' }}>
+            استلام من المحل 🏪
+          </span>
+        )}
       </header>
 
       <div className="glass track-card">
         <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>حالة الطلب اللحظية</h2>
         
-        <div className="stepper">
+        <div className={`stepper ${isPickup ? 'pickup-stepper' : ''}`}>
           {steps.map((step, idx) => (
             <div key={step.num} className={`step ${currentStep >= step.num ? 'completed' : ''} ${currentStep === step.num ? 'active' : ''}`}>
               <div className="step-icon">
@@ -125,9 +142,10 @@ function OrderTrackingContent() {
         <div className="status-message">
           {currentStep === 1 && <p>{settings?.track_queue || 'طلبك الآن في قائمة الانتظار، وسيبدأ عاملنا بجمعه قريباً! ⏱️'}</p>}
           {currentStep === 2 && <p>{settings?.track_preparing || 'يتم الآن تجهيز خضرواتك وفواكهك الطازجة بعناية فائقة وتغليفها 📦'}</p>}
-          {currentStep === 3 && <p>{settings?.track_ready || 'طلبك تم تجهيزه وهو الآن بانتظار السائق لاستلامه والتوجه إليك 🚀'}</p>}
-          {currentStep === 4 && <p>{settings?.track_on_way || 'السائق استلم طلبك وهو الآن في الطريق لمنزلك، ترقب وصوله! 🛵'}</p>}
-          {currentStep === 5 && <p>{settings?.track_delivered || 'تم تسليم الطلب بنجاح، بالعافية ونتمنى لك يوم سعيد! 🎉'}</p>}
+          {isPickup && currentStep === 3 && <p>الطلب بانتظارك في المحل! تفضل بزيارتنا لاستلامه 🏪✨</p>}
+          {!isPickup && currentStep === 3 && <p>{settings?.track_ready || 'طلبك تم تجهيزه وهو الآن بانتظار السائق لاستلامه والتوجه إليك 🚀'}</p>}
+          {!isPickup && currentStep === 4 && <p>{settings?.track_on_way || 'السائق استلم طلبك وهو الآن في الطريق لمنزلك، ترقب وصوله! 🛵'}</p>}
+          {!isPickup && currentStep === 5 && <p>{settings?.track_delivered || 'تم تسليم الطلب بنجاح، بالعافية ونتمنى لك يوم سعيد! 🎉'}</p>}
         </div>
       </div>
 
