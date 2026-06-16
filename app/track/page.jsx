@@ -116,21 +116,13 @@ function OrderTrackingContent() {
   // Use darker shades for QR code to ensure good contrast and readability on white background.
   const qrColor = isCompleted ? '#2E7D32' : '#B8860B'; // Dark Green if completed, Dark Gold otherwise
   
-  const formatPrice = (val) => {
-    const num = Number(val);
-    return isNaN(num) ? '0.00' : num.toFixed(2);
-  };
+  const [qrContent, setQrContent] = useState('');
 
-  const qrContent = `
-فاتورة طلب #${order.id.split('-')[0].toUpperCase()}
-العميل: ${invoice?.customer_name || 'غير معروف'}
---------------------
-المشتريات:
-${items.map(item => `${item.products?.name} x${item.quantity} = ${formatPrice(item.price * item.quantity)}`).join('\n')}
---------------------
-المجموع: ${formatPrice(order.total_price)} ريال
-${isPickup ? 'استلام من المحل' : 'توصيل'}
-  `.trim();
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setQrContent(window.location.href);
+    }
+  }, []);
 
   return (
     <div className="page-wrapper animate-fade-in track-page" style={{ maxWidth: '600px', margin: '0 auto' }}>
