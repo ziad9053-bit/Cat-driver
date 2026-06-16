@@ -24,9 +24,10 @@ function OrderTrackingContent() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setQrContent(window.location.href);
+      const url = new URL(window.location.href);
+      setQrContent(`${url.origin}/invoice?id=${id}`);
     }
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     setMounted(true);
@@ -218,16 +219,23 @@ function OrderTrackingContent() {
 
         {/* Invoice Summary */}
         <div style={{ marginTop: '20px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {invoice && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-              <span>رسوم التوصيل</span>
-              <span>{Number(invoice.delivery_fee).toFixed(2)} ريال</span>
-            </div>
-          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+            <span>رسوم التوصيل</span>
+            <span>
+              {(() => {
+                const deliveryFee = invoice?.delivery_fee ? Number(invoice.delivery_fee) : 0;
+                const subtotal = items.reduce((acc, item) => acc + (item.price_at_purchase * item.quantity), 0);
+                const finalDeliveryFee = invoice ? deliveryFee : (Number(order.total_price) - subtotal);
+                return finalDeliveryFee > 0 ? `${finalDeliveryFee.toFixed(2)} ريال` : 'مجاني';
+              })()}
+            </span>
+          </div>
+          
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.3rem', fontWeight: 'bold', color: 'var(--primary-color)', marginTop: '8px' }}>
             <span>الإجمالي الكلي</span>
             <span>{Number(order.total_price).toFixed(2)} ريال</span>
           </div>
+          
           {invoice && (
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
               <span>طريقة الدفع</span>
