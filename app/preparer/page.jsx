@@ -3,19 +3,30 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Package, CheckCircle, BellRing, Clock } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
 import './preparer.css';
 
 export default function PreparerDashboard() {
-  const { unitTranslations } = useCart();
   const [orders, setOrders] = useState([]);
   const [pastOrders, setPastOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
+  const [unitTranslations, setUnitTranslations] = useState({});
+
+  const fetchUnits = async () => {
+    const { data } = await supabase.from('product_units').select('*');
+    if (data) {
+      const trans = {};
+      data.forEach(u => {
+        trans[u.code] = u.name_ar;
+      });
+      setUnitTranslations(trans);
+    }
+  };
 
   useEffect(() => {
     fetchOrders();
+    fetchUnits();
 
     const channel = supabase
       .channel('preparer-orders')
@@ -28,7 +39,17 @@ export default function PreparerDashboard() {
       })
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    const unitsChannel = supabase
+      .channel('preparer-units')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'product_units' }, (payload) => {
+        fetchUnits();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+      supabase.removeChannel(unitsChannel);
+    };
   }, []);
 
   const fetchOrders = async () => {
@@ -77,7 +98,7 @@ export default function PreparerDashboard() {
     setLoadingItems(true);
     const { data, error } = await supabase
       .from('order_items')
-      .select('*, products(name, image_url, unit_type)')
+      .select('*, products(*)')
       .eq('order_id', orderId);
       
     if (data) setOrderItems(data);
@@ -193,6 +214,7 @@ export default function PreparerDashboard() {
                 <div className="items-list">
                   {orderItems.map(item => {
                     const unitName = item.products?.unit_type ? ((unitTranslations && unitTranslations[item.products.unit_type]) || item.products.unit_type) : 'وحدة';
+                    const displayQty = item.quantity !== undefined && item.quantity !== null ? Number(item.quantity) : '';
 
                     return (
                       <div key={item.id} className="item-row">
@@ -201,7 +223,9 @@ export default function PreparerDashboard() {
                         </div>
                         <div className="item-info">
                           <h4>{item.products?.name}</h4>
-                          <p>الكمية: {Number(item.quantity)} {unitName}</p>
+                          <p style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>
+                            الكمية: {displayQty} {unitName}
+                          </p>
                         </div>
                       </div>
                     );
