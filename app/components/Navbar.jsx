@@ -20,8 +20,11 @@ export default function Navbar() {
   return (
     <nav className="navbar glass">
       <div className="navbar-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        {/* Spacer for layout balance */}
-        <div style={{ width: '60px' }}></div>
+        {/* Auth Links (Left) */}
+        <div style={{ display: 'flex', gap: '10px', width: 'auto', minWidth: '60px' }}>
+          <Link href="/login/admin" className="nav-link" style={{ fontSize: '0.8rem', opacity: 0.7 }}>الإدارة</Link>
+          <Link href="/login/worker" className="nav-link" style={{ fontSize: '0.8rem', opacity: 0.7 }}>العمال</Link>
+        </div>
 
         {/* Logo (Center) */}
         <Link href="/" className="logo" style={{justifyContent: 'center', flex: 1, textAlign: 'center'}}>

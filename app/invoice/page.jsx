@@ -97,7 +97,7 @@ function InvoiceContent() {
         <div className="invoice-header">
           <div className="invoice-brand">
             <Receipt size={32} className="brand-icon" />
-            <h1>{settings?.site_name || 'تطبيق الخضروات'}</h1>
+            <h1>{settings?.invoice_title || settings?.site_name || 'تطبيق الخضروات'}</h1>
           </div>
           <div className="invoice-meta">
             <p><strong>رقم الفاتورة:</strong> #{order.id.split('-')[0].toUpperCase()}</p>
@@ -109,9 +109,9 @@ function InvoiceContent() {
         <div className="invoice-divider"></div>
 
         <div className="invoice-customer">
-          <p><strong>طريقة التوصيل:</strong> {order.delivery_type === 'Pickup' ? 'استلام من المحل' : 'توصيل'}</p>
+          <p><strong>{settings?.invoice_delivery_method || 'طريقة التوصيل:'}</strong> {order.delivery_type === 'Pickup' ? 'استلام من المحل' : 'توصيل'}</p>
           {invoice && (
-            <p><strong>طريقة الدفع:</strong> {invoice.payment_method === 'Cash' ? 'الدفع عند الاستلام' : 'دفع إلكتروني'}</p>
+            <p><strong>{settings?.invoice_payment_method || 'طريقة الدفع:'}</strong> {invoice.payment_method === 'Cash' ? 'الدفع عند الاستلام' : 'دفع إلكتروني'}</p>
           )}
         </div>
 
@@ -142,18 +142,24 @@ function InvoiceContent() {
 
         <div className="invoice-summary">
           <div className="summary-row">
-            <span>المجموع الفرعي:</span>
+            <span>{settings?.invoice_subtotal || 'المجموع الفرعي:'}</span>
             <span>{subtotal.toFixed(2)} ريال</span>
           </div>
           <div className="summary-row">
-            <span>رسوم التوصيل:</span>
-            <span>{finalDeliveryFee > 0 ? `${finalDeliveryFee.toFixed(2)} ريال` : 'مجاني'}</span>
+            <span>{settings?.invoice_delivery_fee || 'رسوم التوصيل:'}</span>
+            <span>{finalDeliveryFee > 0 ? `${finalDeliveryFee.toFixed(2)} ريال` : (settings?.invoice_free_delivery || 'مجاني')}</span>
           </div>
           <div className="summary-row total-row">
-            <span>الإجمالي الكلي:</span>
+            <span>{settings?.invoice_total || 'الإجمالي الكلي:'}</span>
             <span>{Number(order.total_price).toFixed(2)} ريال</span>
           </div>
         </div>
+
+        {settings?.invoice_footer && (
+          <div style={{ textAlign: 'center', marginTop: '20px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            <p>{settings.invoice_footer}</p>
+          </div>
+        )}
 
         <div className="invoice-actions no-print">
           <button className="btn-print" onClick={handlePrint}>
