@@ -215,11 +215,7 @@ export default function DriverDashboard() {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${gpsCoords}`, '_blank');
   };
 
-  if (!mounted) {
-    return (
-      <div className="page-wrapper" style={{ opacity: 0 }}></div>
-    );
-  }
+  // Removed mounted check to allow instant render from localStorage
 
   return (
     <div className="page-wrapper driver-dashboard">

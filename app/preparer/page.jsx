@@ -159,9 +159,7 @@ export default function PreparerDashboard() {
     }
   };
 
-  if (!mounted) {
-    return <div className="page-wrapper" style={{ opacity: 0 }}></div>;
-  }
+  // Removed mounted check to allow instant render from localStorage
 
   // Determine which button to show for the selected order
   const renderOrderActions = () => {

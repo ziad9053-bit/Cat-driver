@@ -47,6 +47,10 @@ export function SettingsProvider({ children }) {
   };
 
   useEffect(() => {
+    // Apply cached theme colors immediately to prevent color flashing
+    if (Object.keys(settings).length > 0) {
+      applyThemeColors(settings);
+    }
     fetchSettings();
 
     const channel = supabase

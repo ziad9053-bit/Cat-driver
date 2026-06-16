@@ -50,7 +50,7 @@ export default function ProductCatalog() {
 
   const hasCachedData = products.length > 0 || categoriesList.length > 0 || Object.keys(settings).length > 0;
 
-  if (!mounted || ((loading || settingsLoading) && !hasCachedData)) {
+  if (((loading || settingsLoading) && !hasCachedData)) {
     return (
       <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
         <header className="page-header" style={{textAlign: 'center', margin: '20px 0'}}>
