@@ -133,13 +133,19 @@ function OrderTrackingContent() {
         <h1 style={{ color: 'var(--primary-color)', margin: '10px 0 0 0', fontSize: '1.5rem' }}>{settings?.track_title || 'فاتورة وتتبع الطلب'}</h1>
         
         <div style={{ padding: '10px', background: 'white', borderRadius: '12px', display: 'inline-block', boxShadow: `0 0 15px ${isCompleted ? 'rgba(46,125,50,0.5)' : 'rgba(184,134,11,0.5)'}`, border: `2px solid ${qrColor}`, transition: 'all 0.5s ease' }}>
-          <QRCodeSVG 
-            value={qrContent} 
-            size={180} 
-            bgColor={"#ffffff"}
-            fgColor={qrColor}
-            level={"L"}
-          />
+          {qrContent ? (
+            <QRCodeSVG 
+              value={qrContent} 
+              size={180} 
+              bgColor={"#ffffff"}
+              fgColor={qrColor}
+              level={"L"}
+            />
+          ) : (
+            <div style={{ width: 180, height: 180, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: '#ccc' }}>Loading QR...</span>
+            </div>
+          )}
         </div>
         <p style={{ color: isCompleted ? 'var(--success-color)' : 'var(--primary-color)', margin: '0', fontWeight: 'bold', fontSize: '1.1rem', transition: 'color 0.5s ease' }}>
           {isCompleted ? 'الطلب جاهز ومكتمل التحضير ✅' : 'امسح الكود لعرض الفاتورة'}
