@@ -68,6 +68,86 @@ export default function ProductCatalog() {
     );
   }
 
+  const handleAddToCart = (e, productId, amount) => {
+    if (amount > 0) {
+      // 1. Haptic feedback
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+      
+      // 2. Play subtle premium sound
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+        gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.1);
+      } catch (err) {}
+
+      // 3. Create Flying Element
+      try {
+        const button = e.currentTarget;
+        const rect = button.getBoundingClientRect();
+        const dot = document.createElement('div');
+        dot.style.position = 'fixed';
+        dot.style.left = `${rect.left + rect.width / 2 - 10}px`;
+        dot.style.top = `${rect.top + rect.height / 2 - 10}px`;
+        dot.style.width = '20px';
+        dot.style.height = '20px';
+        dot.style.backgroundColor = 'var(--primary-color)';
+        dot.style.borderRadius = '50%';
+        dot.style.zIndex = '9999';
+        dot.style.pointerEvents = 'none';
+        dot.style.transition = 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
+        dot.style.boxShadow = '0 0 15px var(--primary-color)';
+        document.body.appendChild(dot);
+
+        // Get Cart Icon Position
+        const cartIcon = document.getElementById('cart-nav-button');
+        let targetX = window.innerWidth / 2;
+        let targetY = window.innerHeight;
+        if (cartIcon) {
+          const cartRect = cartIcon.getBoundingClientRect();
+          targetX = cartRect.left + cartRect.width / 2 - 10;
+          targetY = cartRect.top + cartRect.height / 2 - 10;
+        }
+
+        // Trigger animation
+        requestAnimationFrame(() => {
+          dot.style.left = `${targetX}px`;
+          dot.style.top = `${targetY}px`;
+          dot.style.transform = 'scale(0.2)';
+          dot.style.opacity = '0.3';
+        });
+
+        // Bounce cart icon
+        if (cartIcon) {
+          setTimeout(() => {
+            cartIcon.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+              cartIcon.style.transform = 'scale(1)';
+            }, 150);
+          }, 400);
+        }
+
+        setTimeout(() => {
+          if (document.body.contains(dot)) document.body.removeChild(dot);
+        }, 500);
+      } catch (err) {}
+    } else {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(30);
+    }
+    
+    updateQuantity(productId, amount);
+  };
+
   // Filter products by category
   const filteredProducts = activeCategory 
     ? products.filter(p => p.category_id == activeCategory)
@@ -160,6 +240,7 @@ export default function ProductCatalog() {
         
         {/* Cart Item in Bottom Bar */}
         <button 
+          id="cart-nav-button"
           onClick={() => router.push('/cart/')}
           style={{
             background: 'none',
@@ -336,17 +417,17 @@ export default function ProductCatalog() {
 
                   <div className="product-actions">
                     {quantity === 0 ? (
-                      <button className="add-to-cart-btn" onClick={() => updateQuantity(product.id, 1)}>
+                      <button className="add-to-cart-btn" onClick={(e) => handleAddToCart(e, product.id, 1)}>
                         <Plus size={18} />
                         <span>إضافة للسلة</span>
                       </button>
                     ) : (
                       <div className="quantity-selector">
-                        <button className="qty-btn" onClick={() => updateQuantity(product.id, -1)}>
+                        <button className="qty-btn" onClick={(e) => handleAddToCart(e, product.id, -1)}>
                           <Minus size={18} />
                         </button>
                         <span className="qty-value">{quantity}</span>
-                        <button className="qty-btn" onClick={() => updateQuantity(product.id, 1)}>
+                        <button className="qty-btn" onClick={(e) => handleAddToCart(e, product.id, 1)}>
                           <Plus size={18} />
                         </button>
                       </div>
