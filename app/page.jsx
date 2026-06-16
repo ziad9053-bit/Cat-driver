@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import { Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -8,6 +9,7 @@ import './catalog.css';
 
 export default function ProductCatalog() {
   const { products, cart, updateQuantity, loading } = useCart();
+  const router = useRouter();
 
   const [activeCategory, setActiveCategory] = useState('All');
   const [categoriesList, setCategoriesList] = useState([{ id: 'All', name: 'الكل' }]);
@@ -61,7 +63,7 @@ export default function ProductCatalog() {
         </div>
         
         {/* Cart Icon in Sticky Bar */}
-        <button className="sticky-cart-btn" onClick={() => window.location.href = '/cart'}>
+        <button className="sticky-cart-btn" onClick={() => router.push('/cart')}>
           <ShoppingBag size={24} />
           {Object.keys(cart).length > 0 && (
             <span className="cart-badge">{Object.values(cart).reduce((a, b) => a + b, 0)}</span>

@@ -9,6 +9,30 @@ export function CartProvider({ children }) {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState({}); // { product_id: quantity }
   const [loading, setLoading] = useState(true);
+  const [isCartLoaded, setIsCartLoaded] = useState(false);
+
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedCart = localStorage.getItem('cat_driver_cart');
+      if (savedCart) {
+        setCart(JSON.parse(savedCart));
+      }
+    } catch (e) {
+      console.error('Failed to parse cart from localStorage:', e);
+    }
+    setIsCartLoaded(true);
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    if (!isCartLoaded) return;
+    try {
+      localStorage.setItem('cat_driver_cart', JSON.stringify(cart));
+    } catch (e) {
+      console.error('Failed to save cart to localStorage:', e);
+    }
+  }, [cart, isCartLoaded]);
 
   // Fetch actual products from Supabase
   useEffect(() => {
