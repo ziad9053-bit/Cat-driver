@@ -189,17 +189,28 @@ export default function PreparerDashboard() {
                 <p>جاري تحميل الأصناف...</p>
               ) : (
                 <div className="items-list">
-                  {orderItems.map(item => (
-                    <div key={item.id} className="item-row">
-                      <div className="item-img">
-                        {item.products?.image_url ? <img src={item.products.image_url} alt="" /> : <Package />}
+                  {orderItems.map(item => {
+                    const unitTranslations = {
+                      'Kilo': 'كيلو',
+                      'SmallBox': 'فلين صغير',
+                      'MediumBox': 'فلين وسط',
+                      'LargeBox': 'فلين كبير',
+                      'Box': 'صندوق'
+                    };
+                    const unitName = item.products?.unit_type ? (unitTranslations[item.products.unit_type] || item.products.unit_type) : 'وحدة';
+
+                    return (
+                      <div key={item.id} className="item-row">
+                        <div className="item-img">
+                          {item.products?.image_url ? <img src={item.products.image_url} alt="" /> : <Package />}
+                        </div>
+                        <div className="item-info">
+                          <h4>{item.products?.name}</h4>
+                          <p>الكمية: {Number(item.quantity)} {unitName}</p>
+                        </div>
                       </div>
-                      <div className="item-info">
-                        <h4>{item.products?.name}</h4>
-                        <p>{item.quantity} × {item.products?.unit_type}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
