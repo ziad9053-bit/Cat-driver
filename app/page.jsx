@@ -99,7 +99,10 @@ export default function ProductCatalog() {
       }}>
         {/* Home Button */}
         <button 
-          onClick={() => setActiveCategory(null)}
+          onClick={() => {
+            setActiveCategory(null);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
           style={{
             background: 'none',
             border: 'none',
@@ -130,7 +133,10 @@ export default function ProductCatalog() {
           return (
             <button 
               key={cat.id} 
-              onClick={() => setActiveCategory(cat.id)}
+              onClick={() => {
+                setActiveCategory(cat.id);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               style={{
                 background: 'none',
                 border: 'none',
@@ -222,7 +228,10 @@ export default function ProductCatalog() {
             return (
               <div 
                 key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => {
+                  setActiveCategory(cat.id);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 className="category-row-card glass"
                 style={{
                   position: 'relative',
