@@ -10,7 +10,16 @@ import Link from 'next/link';
 
 export default function CartCheckout() {
   const router = useRouter();
-  const { cartItems, updateQuantity, removeItem, clearCart, subtotal, loading } = useCart();
+  
+  const cartContext = useCart();
+  const { 
+    cartItems = [], 
+    updateQuantity = () => {}, 
+    removeItem = () => {}, 
+    clearCart = () => {}, 
+    subtotal = 0, 
+    loading = false 
+  } = cartContext || {};
   
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [customerName, setCustomerName] = useState('');
@@ -18,8 +27,14 @@ export default function CartCheckout() {
   const [gpsLocation, setGpsLocation] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const deliveryFee = subtotal > 0 ? 15.00 : 0;
-  const finalTotal = subtotal + deliveryFee;
+  const safeSubtotal = typeof subtotal === 'number' && !isNaN(subtotal) ? subtotal : 0;
+  const deliveryFee = safeSubtotal > 0 ? 15.00 : 0;
+  const finalTotal = safeSubtotal + deliveryFee;
+
+  const formatPrice = (val) => {
+    const num = Number(val);
+    return isNaN(num) ? '0.00' : num.toFixed(2);
+  };
 
   const handleDropPin = () => {
     if (navigator.geolocation) {
@@ -163,7 +178,7 @@ export default function CartCheckout() {
                   <div className="item-details">
                     <h3>{item.name}</h3>
                     <div className="item-price-row">
-                      <span className="price">{Number(item.price).toFixed(2)} ريال / {unitName}</span>
+                      <span className="price">{formatPrice(item.price)} ريال / {unitName}</span>
                       {item.is_offer && (
                         <span className="offer-badge" style={{ backgroundColor: item.offer_color || 'var(--accent-color)' }}>
                           {item.offer_label}
@@ -179,7 +194,7 @@ export default function CartCheckout() {
                       <button onClick={() => updateQuantity(item.product_id, 1)} className="qty-btn"><Plus size={16} /></button>
                     </div>
                     <div className="item-subtotal">
-                      {Number(item.price * item.quantity).toFixed(2)} ريال
+                      {formatPrice(item.price * item.quantity)} ريال
                     </div>
                     <button onClick={() => removeItem(item.product_id)} className="delete-btn" title="حذف من السلة">
                       <Trash2 size={20} />
@@ -253,15 +268,15 @@ export default function CartCheckout() {
             <section className="summary-section glass animate-slide-up" style={{ animationDelay: '0.4s' }}>
               <div className="summary-row">
                 <span>المجموع الفرعي</span>
-                <span>{subtotal.toFixed(2)} ريال</span>
+                <span>{formatPrice(safeSubtotal)} ريال</span>
               </div>
               <div className="summary-row">
                 <span>رسوم التوصيل</span>
-                <span>{deliveryFee.toFixed(2)} ريال</span>
+                <span>{formatPrice(deliveryFee)} ريال</span>
               </div>
               <div className="summary-row total">
                 <span>الإجمالي الكلي</span>
-                <span>{finalTotal.toFixed(2)} ريال</span>
+                <span>{formatPrice(finalTotal)} ريال</span>
               </div>
             </section>
           </>
