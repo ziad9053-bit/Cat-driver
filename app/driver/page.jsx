@@ -8,6 +8,7 @@ import './driver.css';
 export default function DriverDashboard() {
   const [orders, setOrders] = useState([]);
   const [myDeliveries, setMyDeliveries] = useState([]);
+  const [pastOrders, setPastOrders] = useState([]);
   const [driverId, setDriverId] = useState(null);
 
   useEffect(() => {
@@ -95,8 +96,20 @@ export default function DriverDashboard() {
 
     if (activeErr) console.error('Error fetching active deliveries:', activeErr);
 
+    // Fetch my past deliveries (Delivered or Cancelled)
+    const { data: pastData, error: pastErr } = await supabase
+      .from('orders')
+      .select('*, users!orders_user_id_fkey(name, phone, location_gps)')
+      .in('status', ['Delivered', 'Cancelled'])
+      .eq('driver_id', currentDriverId)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (pastErr) console.error('Error fetching past deliveries:', pastErr);
+
     if (readyOrders) setOrders(readyOrders);
     if (activeDeliveries) setMyDeliveries(activeDeliveries);
+    if (pastData) setPastOrders(pastData);
   };
 
   const playNotification = () => {
@@ -142,7 +155,7 @@ export default function DriverDashboard() {
     if (error) alert('Error: ' + error.message);
     else {
       alert('عمل رائع! تم تسليم الطلب.');
-      fetchOrders();
+      fetchOrders(driverId);
     }
   };
 
@@ -216,6 +229,32 @@ export default function DriverDashboard() {
             ))
           )}
         </div>
+      </div>
+
+      {/* Past Deliveries Section */}
+      <div className="past-deliveries-section glass" style={{ marginTop: '40px', padding: '24px', borderRadius: 'var(--border-radius-lg)' }}>
+        <h2>الطلبات السابقة التي قمت بتوصيلها ({pastOrders.length})</h2>
+        {pastOrders.length === 0 ? (
+          <p style={{ color: 'var(--text-tertiary)', textAlign: 'center', padding: '20px', margin: 0 }}>لا توجد طلبات سابقة مكتملة بعد.</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', marginTop: '20px' }}>
+            {pastOrders.map(order => (
+              <div key={order.id} className="glass driver-card" style={{ opacity: 0.8, background: 'rgba(255,255,255,0.02)', padding: '16px' }}>
+                <div className="card-header">
+                  <h3>طلب #{order.id.split('-')[0].toUpperCase()}</h3>
+                  <span className="price-tag">{order.total_price} ريال</span>
+                </div>
+                <div className="customer-info" style={{ marginTop: '12px' }}>
+                  <p><Home size={16} style={{ marginLeft: '6px' }} /> {order.users?.name}</p>
+                  <p><Phone size={16} style={{ marginLeft: '6px' }} /> {order.users?.phone}</p>
+                </div>
+                <div style={{ marginTop: '16px', textAlign: 'center', padding: '8px', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--success-color)', borderRadius: 'var(--border-radius-sm)', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                  {order.status === 'Delivered' ? '✓ تم التوصيل بنجاح' : '✕ تم الإلغاء'}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import './preparer.css';
 
 export default function PreparerDashboard() {
   const [orders, setOrders] = useState([]);
+  const [pastOrders, setPastOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
@@ -29,6 +30,7 @@ export default function PreparerDashboard() {
   }, []);
 
   const fetchOrders = async () => {
+    // Active orders (Pending/Processing and not packed)
     const { data, error } = await supabase
       .from('orders')
       .select('*, users!orders_user_id_fkey(name, phone)')
@@ -38,6 +40,17 @@ export default function PreparerDashboard() {
       
     if (error) console.error('Error fetching orders:', error);
     if (data) setOrders(data);
+
+    // Past orders (packed, delivered, or cancelled)
+    const { data: pastData, error: pastErr } = await supabase
+      .from('orders')
+      .select('*, users!orders_user_id_fkey(name, phone)')
+      .or('is_packed.eq.true,status.in.(Delivered,Cancelled)')
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (pastErr) console.error('Error fetching past orders:', pastErr);
+    if (pastData) setPastOrders(pastData);
   };
 
   const playNotification = () => {
@@ -108,31 +121,63 @@ export default function PreparerDashboard() {
       </header>
 
       <div className="dashboard-grid">
-        <div className="orders-list glass">
-          <h2>الطلبات المتاحة ({orders.length})</h2>
-          {orders.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-              <BellRing size={48} style={{ opacity: 0.5, marginBottom: '10px' }} />
-              <p>لا توجد طلبات جديدة حالياً.</p>
-            </div>
-          ) : (
-            orders.map(order => (
-              <div 
-                key={order.id} 
-                className={`order-card ${selectedOrder?.id === order.id ? 'active' : ''} ${order.status === 'Processing' ? 'processing' : ''}`}
-                onClick={() => handleSelectOrder(order)}
-              >
-                <div className="order-card-header">
-                  <h3>طلب #{order.id.split('-')[0].toUpperCase()}</h3>
-                  <span className="time-elapsed"><Clock size={14} /> {new Date(order.created_at).toLocaleTimeString('ar-SA')}</span>
-                </div>
-                <p>العميل: {order.users?.name}</p>
-                <span className={`status-badge ${order.status}`}>
-                  {order.status === 'Pending' ? 'جديد' : 'جاري التحضير'}
-                </span>
+        <div className="orders-list glass" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div>
+            <h2>الطلبات المتاحة ({orders.length})</h2>
+            {orders.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)' }}>
+                <p>لا توجد طلبات جديدة حالياً.</p>
               </div>
-            ))
-          )}
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {orders.map(order => (
+                  <div 
+                    key={order.id} 
+                    className={`order-card ${selectedOrder?.id === order.id ? 'active' : ''} ${order.status === 'Processing' ? 'processing' : ''}`}
+                    onClick={() => handleSelectOrder(order)}
+                  >
+                    <div className="order-card-header">
+                      <h3>طلب #{order.id.split('-')[0].toUpperCase()}</h3>
+                      <span className="time-elapsed"><Clock size={14} /> {new Date(order.created_at).toLocaleTimeString('ar-SA')}</span>
+                    </div>
+                    <p>العميل: {order.users?.name}</p>
+                    <span className={`status-badge ${order.status}`}>
+                      {order.status === 'Pending' ? 'جديد' : 'جاري التحضير'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
+            <h2 style={{ color: 'var(--text-secondary)' }}>الطلبات السابقة المجهزة ({pastOrders.length})</h2>
+            {pastOrders.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '15px', color: 'var(--text-tertiary)' }}>
+                <p>لا توجد طلبات سابقة.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '350px', overflowY: 'auto', paddingRight: '5px' }}>
+                {pastOrders.map(order => (
+                  <div 
+                    key={order.id} 
+                    className={`order-card ${selectedOrder?.id === order.id ? 'active' : ''}`}
+                    style={{ opacity: 0.75, borderRight: '4px solid var(--success-color)' }}
+                    onClick={() => handleSelectOrder(order)}
+                  >
+                    <div className="order-card-header">
+                      <h3>طلب #{order.id.split('-')[0].toUpperCase()}</h3>
+                      <span className="time-elapsed"><Clock size={14} /> {new Date(order.created_at).toLocaleDateString('ar-SA')}</span>
+                    </div>
+                    <p>العميل: {order.users?.name}</p>
+                    <span className="status-badge" style={{ backgroundColor: order.status === 'Delivered' ? 'var(--success-color)' : 'var(--primary-color)', color: 'white' }}>
+                      {order.status === 'Delivered' ? 'تم التوصيل' : 'جاهز للتوصيل'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="order-details glass">
@@ -159,7 +204,11 @@ export default function PreparerDashboard() {
               )}
 
               <div className="order-actions">
-                {selectedOrder.status === 'Pending' ? (
+                {selectedOrder.is_packed || ['Delivered', 'Cancelled', 'OnTheWay'].includes(selectedOrder.status) ? (
+                  <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--success-color)', borderRadius: 'var(--border-radius-md)', fontWeight: 'bold' }}>
+                    {selectedOrder.status === 'Delivered' ? '✓ تم توصيل هذا الطلب للعميل' : '✓ تم تغليف الطلب وبانتظار استلام السائق'}
+                  </div>
+                ) : selectedOrder.status === 'Pending' ? (
                   <button className="btn-primary full-width" onClick={() => handleStartPacking(selectedOrder.id)}>
                     البدء بالتحضير
                   </button>
