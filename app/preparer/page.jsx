@@ -1,20 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Package, CheckCircle, BellRing, Clock } from 'lucide-react';
+import { Package, CheckCircle, Clock } from 'lucide-react';
 import './preparer.css';
 
 export default function PreparerDashboard() {
   const [orders, setOrders] = useState([]);
   const [pastOrders, setPastOrders] = useState([]);
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
   const [unitTranslations, setUnitTranslations] = useState({});
   const [mounted, setMounted] = useState(false);
 
-  const fetchUnits = async () => {
+  // Derive selectedOrder from orders list so it's always in sync
+  const selectedOrder = orders.find(o => o.id === selectedOrderId) || null;
+
+  const fetchUnits = useCallback(async () => {
     const { data } = await supabase.from('product_units').select('*');
     if (data) {
       const trans = {};
@@ -23,56 +26,19 @@ export default function PreparerDashboard() {
       });
       setUnitTranslations(trans);
     }
-  };
-
-  useEffect(() => {
-    setMounted(true);
-    fetchOrders();
-    fetchUnits();
-
-    const channel = supabase
-      .channel('preparer-orders')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-        // Play notification sound or show toast for new orders
-        if (payload.eventType === 'INSERT') {
-          playNotification();
-        }
-        fetchOrders(); // Refresh list on any change
-      })
-      .subscribe();
-
-    const unitsChannel = supabase
-      .channel('preparer-units')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'product_units' }, (payload) => {
-        fetchUnits();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-      supabase.removeChannel(unitsChannel);
-    };
   }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     // Active orders (Pending/Processing and not packed)
     const { data, error } = await supabase
       .from('orders')
       .select('*, users!orders_user_id_fkey(name, phone)')
       .in('status', ['Pending', 'Processing'])
-      .neq('is_packed', true)
+      .or('is_packed.is.null,is_packed.eq.false')
       .order('created_at', { ascending: true });
-      
+
     if (error) console.error('Error fetching orders:', error);
-    if (data) {
-      setOrders(data);
-      // Keep selectedOrder in sync with fresh data
-      setSelectedOrder(prev => {
-        if (!prev) return prev;
-        const updated = data.find(o => o.id === prev.id);
-        return updated || prev;
-      });
-    }
+    if (data) setOrders(data);
 
     // Past orders (packed, delivered, or cancelled)
     const { data: pastData, error: pastErr } = await supabase
@@ -84,10 +50,37 @@ export default function PreparerDashboard() {
 
     if (pastErr) console.error('Error fetching past orders:', pastErr);
     if (pastData) setPastOrders(pastData);
-  };
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+    fetchOrders();
+    fetchUnits();
+
+    const channel = supabase
+      .channel('preparer-orders')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          playNotification();
+        }
+        fetchOrders();
+      })
+      .subscribe();
+
+    const unitsChannel = supabase
+      .channel('preparer-units')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'product_units' }, () => {
+        fetchUnits();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+      supabase.removeChannel(unitsChannel);
+    };
+  }, [fetchOrders, fetchUnits]);
 
   const playNotification = () => {
-    // Simple beep using AudioContext
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const oscillator = audioCtx.createOscillator();
@@ -95,7 +88,7 @@ export default function PreparerDashboard() {
       oscillator.connect(gainNode);
       gainNode.connect(audioCtx.destination);
       oscillator.type = 'sine';
-      oscillator.frequency.value = 880; // A5
+      oscillator.frequency.value = 880;
       gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
       oscillator.start();
       oscillator.stop(audioCtx.currentTime + 0.2);
@@ -106,29 +99,34 @@ export default function PreparerDashboard() {
 
   const loadOrderItems = async (orderId) => {
     setLoadingItems(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('order_items')
       .select('*, products(*)')
       .eq('order_id', orderId);
-      
+
     if (data) setOrderItems(data);
     setLoadingItems(false);
   };
 
   const handleSelectOrder = (order) => {
-    setSelectedOrder(order);
+    setSelectedOrderId(order.id);
     loadOrderItems(order.id);
   };
 
   const handleStartPacking = async (orderId) => {
+    // Optimistic update: immediately update local state
+    setOrders(prev => prev.map(o =>
+      o.id === orderId ? { ...o, status: 'Processing' } : o
+    ));
+
     const { error } = await supabase
       .from('orders')
       .update({ status: 'Processing' })
       .eq('id', orderId);
-      
-    if (error) alert('Error: ' + error.message);
-    else {
-      setSelectedOrder(prev => ({ ...prev, status: 'Processing' }));
+
+    if (error) {
+      alert('خطأ: ' + error.message);
+      fetchOrders(); // Revert on error
     }
   };
 
@@ -137,24 +135,55 @@ export default function PreparerDashboard() {
       .from('orders')
       .update({ is_packed: true })
       .eq('id', orderId);
-      
-    if (error) alert('Error: ' + error.message);
-    else {
+
+    if (error) {
+      alert('خطأ: ' + error.message);
+    } else {
       alert('تم إرسال إشعار للسائقين!');
-      setSelectedOrder(null);
+      setSelectedOrderId(null);
       fetchOrders();
     }
   };
 
   if (!mounted) {
-    return (
-      <div className="page-wrapper" style={{ opacity: 0 }}></div>
-    );
+    return <div className="page-wrapper" style={{ opacity: 0 }}></div>;
   }
+
+  // Determine which button to show for the selected order
+  const renderOrderActions = () => {
+    if (!selectedOrder) return null;
+
+    const status = selectedOrder.status;
+    const packed = selectedOrder.is_packed;
+
+    if (status === 'Pending') {
+      return (
+        <button
+          className="btn-primary full-width"
+          onClick={() => handleStartPacking(selectedOrder.id)}
+        >
+          البدء بالتحضير
+        </button>
+      );
+    }
+
+    if (status === 'Processing' && packed !== true) {
+      return (
+        <button
+          className="btn-success full-width"
+          onClick={() => handleFinishPacking(selectedOrder.id)}
+        >
+          <CheckCircle size={20} /> تم التجهيز، بانتظار السائق
+        </button>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <div className="page-wrapper preparer-dashboard">
-      <header className="page-header" style={{textAlign: 'center', marginBottom: '30px'}}>
+      <header className="page-header" style={{ textAlign: 'center', marginBottom: '30px' }}>
         <h1 style={{ color: 'var(--primary-color)' }}>شاشة عامل التحضير 📦</h1>
         <p style={{ color: 'var(--text-secondary)' }}>الطلبات الواردة بانتظار التجهيز والتغليف.</p>
       </header>
@@ -170,9 +199,9 @@ export default function PreparerDashboard() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {orders.map(order => (
-                  <div 
-                    key={order.id} 
-                    className={`order-card ${selectedOrder?.id === order.id ? 'active' : ''} ${order.status === 'Processing' ? 'processing' : ''}`}
+                  <div
+                    key={order.id}
+                    className={`order-card ${selectedOrderId === order.id ? 'active' : ''} ${order.status === 'Processing' ? 'processing' : ''}`}
                     onClick={() => handleSelectOrder(order)}
                   >
                     <div className="order-card-header">
@@ -198,9 +227,9 @@ export default function PreparerDashboard() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '350px', overflowY: 'auto', paddingRight: '5px' }}>
                 {pastOrders.map(order => (
-                  <div 
-                    key={order.id} 
-                    className={`order-card ${selectedOrder?.id === order.id ? 'active' : ''}`}
+                  <div
+                    key={order.id}
+                    className={`order-card ${selectedOrderId === order.id ? 'active' : ''}`}
                     style={{ opacity: 0.75, borderRight: '4px solid var(--success-color)' }}
                     onClick={() => handleSelectOrder(order)}
                   >
@@ -223,13 +252,15 @@ export default function PreparerDashboard() {
           {selectedOrder ? (
             <>
               <h2>تفاصيل الطلب #{selectedOrder.id.split('-')[0].toUpperCase()}</h2>
-              
+
               {loadingItems ? (
                 <p>جاري تحميل الأصناف...</p>
               ) : (
                 <div className="items-list">
                   {orderItems.map(item => {
-                    const unitName = item.products?.unit_type ? ((unitTranslations && unitTranslations[item.products.unit_type]) || item.products.unit_type) : 'وحدة';
+                    const unitName = item.products?.unit_type
+                      ? ((unitTranslations && unitTranslations[item.products.unit_type]) || item.products.unit_type)
+                      : 'وحدة';
                     const displayQty = item.quantity !== undefined && item.quantity !== null ? Number(item.quantity) : '';
 
                     return (
@@ -249,23 +280,8 @@ export default function PreparerDashboard() {
                 </div>
               )}
 
-              <div className="order-actions" style={{ marginTop: '20px' }}>
-                {selectedOrder.status === 'Pending' ? (
-                  <button 
-                    className="btn-primary full-width" 
-                    style={{ backgroundColor: 'var(--primary-color, #D4AF37)', color: '#000', border: 'none', padding: '15px', borderRadius: '12px', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer', width: '100%' }}
-                    onClick={() => handleStartPacking(selectedOrder.id)}
-                  >
-                    البدء بالتحضير
-                  </button>
-                ) : selectedOrder.status === 'Processing' && !selectedOrder.is_packed ? (
-                  <button 
-                    className="btn-success full-width" 
-                    onClick={() => handleFinishPacking(selectedOrder.id)}
-                  >
-                    <CheckCircle size={20} /> تم التجهيز، بانتظار السائق
-                  </button>
-                ) : null}
+              <div className="order-actions">
+                {renderOrderActions()}
               </div>
             </>
           ) : (
