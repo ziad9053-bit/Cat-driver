@@ -33,10 +33,12 @@ export default function WorkerLogin() {
         router.push(`${targetPath}/`);
         // Fallback timeout in case router.push doesn't navigate
         setTimeout(() => {
-          window.location.href = `/Cat-driver${targetPath}/`;
+          const basePath = window.location.pathname.includes('/Cat-driver') ? '/Cat-driver' : '';
+          window.location.href = `${basePath}${targetPath}/`;
         }, 500);
-      } catch (e) {
-        window.location.href = `/Cat-driver${targetPath}/`;
+      } catch (err) {
+        const basePath = window.location.pathname.includes('/Cat-driver') ? '/Cat-driver' : '';
+        window.location.href = `${basePath}${targetPath}/`;
       }
     }
   };

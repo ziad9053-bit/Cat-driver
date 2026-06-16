@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
+const isVercel = process.env.VERCEL === '1';
+
 const nextConfig = {
-  output: 'export',
-  basePath: '/Cat-driver',
+  output: isVercel ? undefined : 'export',
+  basePath: isVercel ? '' : '/Cat-driver',
   trailingSlash: true,
   images: {
     unoptimized: true,

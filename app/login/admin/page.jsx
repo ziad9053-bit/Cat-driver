@@ -27,10 +27,12 @@ export default function AdminLogin() {
       try {
         router.push('/admin/');
         setTimeout(() => {
-          window.location.href = '/Cat-driver/admin/';
+          const basePath = window.location.pathname.includes('/Cat-driver') ? '/Cat-driver' : '';
+          window.location.href = `${basePath}/admin/`;
         }, 500);
-      } catch (e) {
-        window.location.href = '/Cat-driver/admin/';
+      } catch (err) {
+        const basePath = window.location.pathname.includes('/Cat-driver') ? '/Cat-driver' : '';
+        window.location.href = `${basePath}/admin/`;
       }
     }
   };
