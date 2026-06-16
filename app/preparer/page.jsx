@@ -60,7 +60,7 @@ export default function PreparerDashboard() {
       .from('orders')
       .select('*, users!orders_user_id_fkey(name, phone)')
       .in('status', ['Pending', 'Processing'])
-      .eq('is_packed', false)
+      .neq('is_packed', true)
       .order('created_at', { ascending: true });
       
     if (error) console.error('Error fetching orders:', error);
