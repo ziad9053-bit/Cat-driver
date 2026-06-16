@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { Save, X, RefreshCw } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 
-export default function SettingsTab({ onClose }) {
+export default function SettingsTab() {
   const { settings: currentSettings, fetchSettings } = useSettings();
   const [settingsList, setSettingsList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -71,9 +71,6 @@ export default function SettingsTab({ onClose }) {
             <RefreshCw size={20} className={loading ? 'spin' : ''} />
           </button>
         </h2>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-          <X size={24} />
-        </button>
       </div>
 
       {loading ? (
@@ -110,7 +107,7 @@ export default function SettingsTab({ onClose }) {
                         </div>
                       ) : (
                         <input 
-                          type={setting.type === 'link' ? 'url' : 'text'} 
+                          type={setting.type === 'link' ? 'url' : (setting.type === 'number' ? 'number' : 'text')} 
                           value={setting.value} 
                           onChange={(e) => handleChange(setting.key, e.target.value)}
                           style={{ flexGrow: 1, padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white' }}

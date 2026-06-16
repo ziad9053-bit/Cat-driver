@@ -53,8 +53,23 @@ export default function CartCheckout() {
     setCustomerPhone(val);
   };
 
+  const baseDeliveryFee = settings?.delivery_fee !== undefined ? Number(settings.delivery_fee) : 15.00;
+  const freeDeliveryThreshold = settings?.free_delivery_threshold !== undefined ? Number(settings.free_delivery_threshold) : 500;
+
   const safeSubtotal = typeof subtotal === 'number' && !isNaN(subtotal) ? subtotal : 0;
-  const deliveryFee = (safeSubtotal > 0 && deliveryType === 'Delivery') ? 15.00 : 0;
+  
+  let deliveryFee = 0;
+  let isFreeDelivery = false;
+
+  if (deliveryType === 'Delivery' && safeSubtotal > 0) {
+    if (safeSubtotal >= freeDeliveryThreshold) {
+      deliveryFee = 0;
+      isFreeDelivery = true;
+    } else {
+      deliveryFee = baseDeliveryFee;
+    }
+  }
+
   const finalTotal = safeSubtotal + deliveryFee;
 
   const formatPrice = (val) => {
@@ -368,7 +383,20 @@ export default function CartCheckout() {
               </div>
               <div className="summary-row">
                 <span>رسوم التوصيل</span>
-                <span>{formatPrice(deliveryFee)} ريال</span>
+                {deliveryType === 'Pickup' ? (
+                  <span style={{ color: 'var(--success-color)', fontWeight: 'bold' }}>مجاني (استلام)</span>
+                ) : isFreeDelivery ? (
+                  <span style={{ color: 'var(--success-color)', fontWeight: 'bold' }}>مجاني</span>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <span>{formatPrice(deliveryFee)} ريال</span>
+                    {freeDeliveryThreshold > 0 && safeSubtotal < freeDeliveryThreshold && (
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                        أضف بقيمة {formatPrice(freeDeliveryThreshold - safeSubtotal)} ريال للحصول على توصيل مجاني!
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="summary-row total">
                 <span>الإجمالي الكلي</span>
