@@ -23,9 +23,16 @@ export default function CartCheckout() {
   } = cartContext || {};
 
   const [mounted, setMounted] = useState(false);
+  const [toast, setToast] = useState(null);
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
   
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [customerName, setCustomerName] = useState('');
@@ -47,32 +54,32 @@ export default function CartCheckout() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setGpsLocation(`${position.coords.latitude}, ${position.coords.longitude}`);
-          alert('Location captured successfully! 📍');
+          showToast('تم التقاط الموقع بنجاح! 📍', 'success');
         },
         (error) => {
-          alert('Unable to retrieve your location. Please check permissions.');
+          showToast('تعذر التقاط الموقع. يرجى التأكد من صلاحيات الموقع.', 'error');
         }
       );
     } else {
-      alert('Geolocation is not supported by this browser.');
+      showToast('المتصفح لا يدعم تحديد الموقع.', 'error');
     }
   };
 
   const submitOrder = async () => {
     if (cartItems.length === 0) {
-      alert('سلتك فارغة!');
+      showToast('سلتك فارغة!', 'error');
       return;
     }
     if (!customerName || !customerName.trim()) {
-      alert('يرجى إدخال الاسم الكامل.');
+      showToast('يرجى إدخال الاسم الكامل.', 'error');
       return;
     }
     if (!customerPhone || !customerPhone.trim()) {
-      alert('يرجى إدخال رقم الجوال.');
+      showToast('يرجى إدخال رقم الجوال.', 'error');
       return;
     }
     if (!gpsLocation) {
-      alert('يرجى تحديد موقعك على الخريطة أولاً (اضغط على زر تحديد موقعي).');
+      showToast('يرجى تحديد موقعك على الخريطة أولاً (اضغط على زر تحديد موقعي).', 'error');
       return;
     }
     
@@ -135,13 +142,13 @@ export default function CartCheckout() {
         
       if (invoiceErr) throw invoiceErr;
 
-      alert('تم إرسال طلبك بنجاح! سيتم تحويلك لصفحة التتبع.');
+      showToast('تم إرسال طلبك بنجاح! سيتم تحويلك لصفحة التتبع.', 'success');
       clearCart();
       router.push(`/track?id=${order.id}`);
       
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('حدث خطأ أثناء إرسال الطلب: ' + error.message);
+      showToast('حدث خطأ أثناء إرسال الطلب: ' + error.message, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -162,6 +169,11 @@ export default function CartCheckout() {
 
   return (
     <div className="cart-page animate-fade-in">
+      {toast && (
+        <div className={`toast-notification ${toast.type}`}>
+          {toast.message}
+        </div>
+      )}
       <header className="page-header">
         <Link href="/" className="back-link">
           <ArrowRight size={20} />

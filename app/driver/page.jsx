@@ -11,6 +11,12 @@ export default function DriverDashboard() {
   const [pastOrders, setPastOrders] = useState([]);
   const [driverId, setDriverId] = useState(null);
   const [mounted, setMounted] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -135,7 +141,7 @@ export default function DriverDashboard() {
 
   const handleAcceptDelivery = async (orderId) => {
     if (!driverId) {
-      alert('يرجى الانتظار حتى تحميل بيانات السائق.');
+      showToast('يرجى الانتظار حتى تحميل بيانات السائق.', 'error');
       return;
     }
     const { error } = await supabase
@@ -146,8 +152,11 @@ export default function DriverDashboard() {
       })
       .eq('id', orderId);
       
-    if (error) alert('Error: ' + error.message);
-    else fetchOrders(driverId);
+    if (error) showToast('Error: ' + error.message, 'error');
+    else {
+      showToast('تم قبول الطلب', 'success');
+      fetchOrders(driverId);
+    }
   };
 
   const handleCompleteDelivery = async (orderId) => {
@@ -156,9 +165,9 @@ export default function DriverDashboard() {
       .update({ status: 'Delivered' })
       .eq('id', orderId);
       
-    if (error) alert('Error: ' + error.message);
+    if (error) showToast('Error: ' + error.message, 'error');
     else {
-      alert('عمل رائع! تم تسليم الطلب.');
+      showToast('عمل رائع! تم تسليم الطلب.', 'success');
       fetchOrders(driverId);
     }
   };
@@ -175,6 +184,11 @@ export default function DriverDashboard() {
 
   return (
     <div className="page-wrapper driver-dashboard">
+      {toast && (
+        <div className={`toast-notification ${toast.type}`}>
+          {toast.message}
+        </div>
+      )}
       <header className="page-header" style={{textAlign: 'center', marginBottom: '30px'}}>
         <h1 style={{ color: 'var(--primary-color)' }}>شاشة السائق 🛵</h1>
         <p style={{ color: 'var(--text-secondary)' }}>الطلبات الجاهزة بانتظار التوصيل.</p>
