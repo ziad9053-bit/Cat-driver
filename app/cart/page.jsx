@@ -57,8 +57,16 @@ export default function CartCheckout() {
       alert('سلتك فارغة!');
       return;
     }
-    if (!customerName || !customerPhone || !gpsLocation) {
-      alert('يرجى تعبئة جميع البيانات وتحديد موقعك على الخريطة.');
+    if (!customerName || !customerName.trim()) {
+      alert('يرجى إدخال الاسم الكامل.');
+      return;
+    }
+    if (!customerPhone || !customerPhone.trim()) {
+      alert('يرجى إدخال رقم الجوال.');
+      return;
+    }
+    if (!gpsLocation) {
+      alert('يرجى تحديد موقعك على الخريطة أولاً (اضغط على زر تحديد موقعي).');
       return;
     }
     
@@ -212,21 +220,29 @@ export default function CartCheckout() {
             <section className="customer-section glass animate-slide-up" style={{ animationDelay: '0.2s' }}>
               <h2>تفاصيل التوصيل</h2>
               <div className="input-group">
+                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontWeight: '600' }}>
+                  الاسم الكامل <span style={{ color: '#ff4d4f' }}>*</span>
+                </label>
                 <input 
                   type="text" 
                   placeholder="الاسم الكامل" 
                   value={customerName}
                   onChange={e => setCustomerName(e.target.value)}
                   className="custom-input"
+                  required
                 />
               </div>
               <div className="input-group">
+                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontWeight: '600' }}>
+                  رقم الجوال <span style={{ color: '#ff4d4f' }}>*</span>
+                </label>
                 <input 
                   type="tel" 
                   placeholder="رقم الجوال" 
                   value={customerPhone}
                   onChange={e => setCustomerPhone(e.target.value)}
                   className="custom-input"
+                  required
                 />
               </div>
               <button className={`pin-btn ${gpsLocation ? 'success' : ''}`} onClick={handleDropPin}>
