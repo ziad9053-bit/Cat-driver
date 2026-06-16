@@ -6,9 +6,33 @@ import { MapPin, Truck, Home, Phone, BellRing, Navigation } from 'lucide-react';
 import './driver.css';
 
 export default function DriverDashboard() {
-  const [orders, setOrders] = useState([]);
-  const [myDeliveries, setMyDeliveries] = useState([]);
-  const [pastOrders, setPastOrders] = useState([]);
+  const [orders, setOrders] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('cat_driver_driver_orders');
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return [];
+  });
+  const [myDeliveries, setMyDeliveries] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('cat_driver_driver_my');
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return [];
+  });
+  const [pastOrders, setPastOrders] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('cat_driver_driver_past');
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return [];
+  });
   const [driverId, setDriverId] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState(null);
@@ -123,9 +147,18 @@ export default function DriverDashboard() {
 
     if (pastErr) console.error('Error fetching past deliveries:', pastErr);
 
-    if (readyOrders) setOrders(readyOrders);
-    if (activeDeliveries) setMyDeliveries(activeDeliveries);
-    if (pastData) setPastOrders(pastData);
+    if (readyOrders) {
+      setOrders(readyOrders);
+      if (typeof window !== 'undefined') localStorage.setItem('cat_driver_driver_orders', JSON.stringify(readyOrders));
+    }
+    if (activeDeliveries) {
+      setMyDeliveries(activeDeliveries);
+      if (typeof window !== 'undefined') localStorage.setItem('cat_driver_driver_my', JSON.stringify(activeDeliveries));
+    }
+    if (pastData) {
+      setPastOrders(pastData);
+      if (typeof window !== 'undefined') localStorage.setItem('cat_driver_driver_past', JSON.stringify(pastData));
+    }
   };
 
   const playNotification = () => {
