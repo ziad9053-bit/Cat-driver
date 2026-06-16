@@ -194,6 +194,7 @@ export default function DriverDashboard() {
     if (error) showToast('Error: ' + error.message, 'error');
     else {
       showToast('تم قبول الطلب', 'success');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       fetchOrders(driverId);
     }
   };
@@ -207,6 +208,7 @@ export default function DriverDashboard() {
     if (error) showToast('Error: ' + error.message, 'error');
     else {
       showToast('عمل رائع! تم تسليم الطلب.', 'success');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       fetchOrders(driverId);
     }
   };

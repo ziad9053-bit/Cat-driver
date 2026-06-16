@@ -113,6 +113,7 @@ export default function PreparerDashboard() {
   const handleSelectOrder = (order) => {
     setSelectedOrderId(order.id);
     loadOrderItems(order.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const showToast = (message, type = 'success') => {
