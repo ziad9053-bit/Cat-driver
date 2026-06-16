@@ -38,9 +38,19 @@ export default function CartCheckout() {
   
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('05');
   const [gpsLocation, setGpsLocation] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handlePhoneChange = (e) => {
+    let val = e.target.value.replace(/[^0-9]/g, '');
+    if (!val.startsWith('05')) {
+      if (val.startsWith('0')) val = '05' + val.slice(1);
+      else val = '05' + val;
+    }
+    if (val.length > 10) val = val.slice(0, 10);
+    setCustomerPhone(val);
+  };
 
   const safeSubtotal = typeof subtotal === 'number' && !isNaN(subtotal) ? subtotal : 0;
   const deliveryFee = safeSubtotal > 0 ? 15.00 : 0;
@@ -259,10 +269,21 @@ export default function CartCheckout() {
                 </label>
                 <input 
                   type="tel" 
-                  placeholder="رقم الجوال" 
+                  dir="ltr"
+                  placeholder="05XXXXXXXX" 
                   value={customerPhone}
-                  onChange={e => setCustomerPhone(e.target.value)}
+                  onChange={handlePhoneChange}
                   className="custom-input"
+                  style={{ 
+                    textAlign: 'left', 
+                    letterSpacing: '2px', 
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold',
+                    borderColor: customerPhone.length === 10 ? '#4caf50' : customerPhone.length > 2 ? '#ff9800' : 'rgba(255,255,255,0.1)',
+                    borderWidth: customerPhone.length > 2 ? '2px' : '1px',
+                    boxShadow: customerPhone.length === 10 ? '0 0 10px rgba(76, 175, 80, 0.3)' : 'none',
+                    transition: 'all 0.3s ease'
+                  }}
                   required
                 />
               </div>
