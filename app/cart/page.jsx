@@ -40,6 +40,7 @@ export default function CartCheckout() {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('05');
   const [gpsLocation, setGpsLocation] = useState(null);
+  const [manualAddress, setManualAddress] = useState('');
   const [deliveryType, setDeliveryType] = useState('Delivery');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -86,8 +87,9 @@ export default function CartCheckout() {
           showToast('تم التقاط الموقع بنجاح! 📍', 'success');
         },
         (error) => {
-          showToast('تعذر التقاط الموقع. يرجى التأكد من صلاحيات الموقع.', 'error');
-        }
+          showToast('تم رفض صلاحية الموقع. يرجى كتابة العنوان يدوياً.', 'error');
+        },
+        { timeout: 10000, maximumAge: 60000 }
       );
     } else {
       showToast('المتصفح لا يدعم تحديد الموقع.', 'error');
@@ -112,14 +114,18 @@ export default function CartCheckout() {
       showToast('يرجى إدخال رقم جوال صحيح يبدأ بـ 05 ومكون من 10 أرقام.', 'error');
       return;
     }
-    if (deliveryType === 'Delivery' && !gpsLocation) {
-      showToast('يرجى تحديد موقعك على الخريطة أولاً (اضغط على زر تحديد موقعي).', 'error');
+    if (deliveryType === 'Delivery' && !gpsLocation && (!manualAddress || !manualAddress.trim())) {
+      showToast('يرجى كتابة عنوان التوصيل أو الضغط على زر تحديد موقعي.', 'error');
       return;
     }
     
     setIsSubmitting(true);
     
     try {
+      const finalLocation = gpsLocation && manualAddress 
+        ? `${manualAddress} (GPS: ${gpsLocation})` 
+        : (gpsLocation || manualAddress || 'Pickup');
+
       // 1. Check if user exists by phone
       let { data: existingUsers } = await supabase
         .from('users')
@@ -133,7 +139,7 @@ export default function CartCheckout() {
         // Create new user
         const { data: newUser, error: userErr } = await supabase
           .from('users')
-          .insert({ name: customerName, phone: customerPhone, location_gps: gpsLocation, role: 'Customer' })
+          .insert({ name: customerName, phone: customerPhone, location_gps: finalLocation, role: 'Customer' })
           .select()
           .single();
           
@@ -307,11 +313,44 @@ export default function CartCheckout() {
                   }}
                   required
                 />
+              <div className="input-group" style={{ display: deliveryType === 'Delivery' ? 'block' : 'none' }}>
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', color: 'var(--text-secondary)', fontWeight: '600' }}>
+                  <span>عنوان التوصيل <span style={{ color: '#ff4d4f' }}>*</span></span>
+                  <button 
+                    type="button"
+                    className={`pin-btn-small ${gpsLocation && gpsLocation !== 'Pickup' ? 'success' : ''}`} 
+                    onClick={handleDropPin}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: gpsLocation && gpsLocation !== 'Pickup' ? 'var(--success-color)' : 'var(--accent-color)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '0.85rem',
+                      fontWeight: 'bold',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <MapPin size={16} />
+                    {gpsLocation && gpsLocation !== 'Pickup' ? 'تم حفظ الـ GPS' : 'التقاط موقعي (GPS)'}
+                  </button>
+                </label>
+                <textarea 
+                  placeholder="اسم الحي، الشارع، أو وصف للمنزل..." 
+                  value={manualAddress}
+                  onChange={e => setManualAddress(e.target.value)}
+                  className="custom-input"
+                  rows="2"
+                  style={{ resize: 'none' }}
+                  required={deliveryType === 'Delivery' && !gpsLocation}
+                />
+                {!gpsLocation && (
+                  <small style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', display: 'block', marginTop: '4px' }}>
+                    يمكنك كتابة العنوان يدوياً أو استخدام زر الالتقاط أعلاه.
+                  </small>
+                )}
               </div>
-              <button className={`pin-btn ${gpsLocation && gpsLocation !== 'Pickup' ? 'success' : ''}`} onClick={handleDropPin} style={{ display: deliveryType === 'Delivery' ? 'flex' : 'none' }}>
-                <MapPin size={20} />
-                {gpsLocation && gpsLocation !== 'Pickup' ? 'تم التقاط الموقع بنجاح ✓' : 'تحديد موقعي 📍'}
-              </button>
 
               <div className="input-group" style={{ marginTop: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontWeight: '600' }}>
