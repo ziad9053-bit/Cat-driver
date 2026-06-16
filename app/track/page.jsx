@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { supabase } from '../../../lib/supabase';
+import { useEffect, useState, Suspense } from 'react';
+import { supabase } from '../../lib/supabase';
 import { CheckCircle, Clock, Package, Truck, Home, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import './track.css';
 
-export default function OrderTracking({ params }) {
-  const { id } = params;
+function OrderTrackingContent() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id');
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -95,5 +97,13 @@ export default function OrderTracking({ params }) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OrderTracking() {
+  return (
+    <Suspense fallback={<div className="page-wrapper"><div className="glass" style={{padding: '40px', textAlign: 'center'}}>جاري تحميل الصفحة...</div></div>}>
+      <OrderTrackingContent />
+    </Suspense>
   );
 }

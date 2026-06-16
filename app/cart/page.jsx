@@ -108,7 +108,7 @@ export default function CartCheckout() {
 
       alert('تم إرسال طلبك بنجاح! سيتم تحويلك لصفحة التتبع.');
       clearCart();
-      router.push(`/track/${order.id}`);
+      router.push(`/track?id=${order.id}`);
       
     } catch (error) {
       console.error('Checkout error:', error);
