@@ -6,7 +6,15 @@ import { supabase } from '../lib/supabase';
 const SettingsContext = createContext({});
 
 export function SettingsProvider({ children }) {
-  const [settings, setSettings] = useState({});
+  const [settings, setSettings] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('cat_driver_settings');
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return {};
+  });
   const [loading, setLoading] = useState(true);
 
   const fetchSettings = async () => {
@@ -18,6 +26,9 @@ export function SettingsProvider({ children }) {
       });
       setSettings(newSettings);
       applyThemeColors(newSettings);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cat_driver_settings', JSON.stringify(newSettings));
+      }
     }
     setLoading(false);
   };

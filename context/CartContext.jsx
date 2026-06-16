@@ -6,11 +6,27 @@ import { supabase } from '../lib/supabase';
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('cat_driver_products');
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return [];
+  });
   const [cart, setCart] = useState({}); // { product_id: quantity }
   const [loading, setLoading] = useState(true);
   const [isCartLoaded, setIsCartLoaded] = useState(false);
-  const [unitTranslations, setUnitTranslations] = useState({});
+  const [unitTranslations, setUnitTranslations] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('cat_driver_units');
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return {};
+  });
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -41,6 +57,9 @@ export function CartProvider({ children }) {
       const { data, error } = await supabase.from('products').select('*');
       if (data) {
         setProducts(data);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('cat_driver_products', JSON.stringify(data));
+        }
       }
       setLoading(false);
     };
@@ -53,6 +72,9 @@ export function CartProvider({ children }) {
           trans[u.code] = u.name_ar;
         });
         setUnitTranslations(trans);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('cat_driver_units', JSON.stringify(trans));
+        }
       }
     };
     

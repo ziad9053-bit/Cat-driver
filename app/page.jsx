@@ -14,7 +14,15 @@ export default function ProductCatalog() {
   const router = useRouter();
 
   const [activeCategory, setActiveCategory] = useState(null);
-  const [categoriesList, setCategoriesList] = useState([]);
+  const [categoriesList, setCategoriesList] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('cat_driver_categories');
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return [];
+  });
   const [mounted, setMounted] = useState(false);
   
   // Fetch dynamic categories
@@ -32,13 +40,17 @@ export default function ProductCatalog() {
           return 0;
         });
         setCategoriesList(ordered);
-        setActiveCategory(null); // Keep as null by default to show category landing rows
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('cat_driver_categories', JSON.stringify(ordered));
+        }
       }
     };
     loadCategories();
   }, []);
 
-  if (!mounted || loading || settingsLoading) {
+  const hasCachedData = products.length > 0 || categoriesList.length > 0 || Object.keys(settings).length > 0;
+
+  if (!mounted || ((loading || settingsLoading) && !hasCachedData)) {
     return (
       <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
         <header className="page-header" style={{textAlign: 'center', margin: '20px 0'}}>
