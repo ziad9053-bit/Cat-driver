@@ -51,6 +51,13 @@ export default function DriverDashboard() {
     };
 
     initDriver();
+  }, []);
+
+  // Fetch orders and subscribe to realtime updates once driverId is active
+  useEffect(() => {
+    if (!driverId) return;
+
+    fetchOrders(driverId);
 
     const channel = supabase
       .channel('driver-orders')
@@ -58,21 +65,13 @@ export default function DriverDashboard() {
         if (payload.eventType === 'UPDATE' && payload.new.is_packed && payload.new.status === 'Processing') {
           playNotification();
         }
-        // Refresh with latest driver ID
-        if (driverId) {
-          fetchOrders(driverId);
-        }
+        fetchOrders(driverId);
       })
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
-  }, []);
-
-  // Fetch orders when driver ID is loaded or changes
-  useEffect(() => {
-    if (driverId) {
-      fetchOrders(driverId);
-    }
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [driverId]);
 
   const fetchOrders = async (currentDriverId) => {
