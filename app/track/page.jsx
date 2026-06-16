@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { useSettings } from '../../context/SettingsContext';
+import { QRCodeSVG } from 'qrcode.react';
 import './track.css';
 
 function OrderTrackingContent() {
@@ -109,16 +110,48 @@ function OrderTrackingContent() {
     { num: 5, title: 'تم التوصيل', icon: <Home size={24} /> }
   ];
 
+  const isCompleted = currentStep === steps.length;
+  const qrColor = isCompleted ? 'var(--success-color)' : '#FFD700'; // Green if completed, Gold otherwise
+  
+  const formatPrice = (val) => {
+    const num = Number(val);
+    return isNaN(num) ? '0.00' : num.toFixed(2);
+  };
+
+  const qrContent = `
+فاتورة طلب #${order.id.split('-')[0].toUpperCase()}
+العميل: ${invoice?.customer_name || 'غير معروف'}
+--------------------
+المشتريات:
+${items.map(item => `${item.products?.name} x${item.quantity} = ${formatPrice(item.price * item.quantity)} ريال`).join('\n')}
+--------------------
+المجموع: ${formatPrice(order.total_price)} ريال
+${isPickup ? 'طريقة الاستلام: استلام من المحل' : 'طريقة الاستلام: توصيل'}
+  `.trim();
+
   return (
     <div className="page-wrapper animate-fade-in track-page" style={{ maxWidth: '600px', margin: '0 auto' }}>
-      <header className="page-header" style={{textAlign: 'center', marginBottom: '30px', position: 'relative'}}>
-        <Link href="/" className="back-link" style={{position: 'absolute', right: '10px', top: '10px', display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: 'var(--primary-color)' }}>
+      <header className="page-header glass" style={{textAlign: 'center', marginBottom: '30px', position: 'relative', padding: '20px', borderRadius: 'var(--border-radius-lg)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px'}}>
+        <Link href="/" className="back-link" style={{position: 'absolute', right: '15px', top: '15px', display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: 'var(--primary-color)' }}>
           <ArrowRight size={20} /> للرئيسية
         </Link>
-        <h1 style={{ color: 'var(--primary-color)', margin: '10px 0 0 0' }}>{settings?.track_title || 'تتبع طلبك'}</h1>
-        <p style={{ color: 'var(--text-secondary)', margin: '5px 0 0 0' }}>رقم الطلب: {order.id.split('-')[0].toUpperCase()}</p>
+        <h1 style={{ color: 'var(--primary-color)', margin: '10px 0 0 0', fontSize: '1.5rem' }}>{settings?.track_title || 'فاتورة وتتبع الطلب'}</h1>
+        
+        <div style={{ padding: '10px', background: 'white', borderRadius: '8px', display: 'inline-block', boxShadow: `0 0 15px ${qrColor}80`, border: `2px solid ${qrColor}`, transition: 'all 0.5s ease' }}>
+          <QRCodeSVG 
+            value={qrContent} 
+            size={120} 
+            bgColor={"#ffffff"}
+            fgColor={"#000000"}
+            level={"M"}
+          />
+        </div>
+        <p style={{ color: qrColor, margin: '0', fontWeight: 'bold', fontSize: '1.1rem', transition: 'color 0.5s ease' }}>
+          {isCompleted ? 'الطلب مكتمل ✅' : 'امسح الكود لعرض الفاتورة'}
+        </p>
+
         {isPickup && (
-          <span style={{ display: 'inline-block', marginTop: '10px', backgroundColor: '#ff9800', color: '#fff', padding: '4px 12px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 'bold' }}>
+          <span style={{ display: 'inline-block', backgroundColor: '#ff9800', color: '#fff', padding: '4px 12px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 'bold' }}>
             استلام من المحل 🏪
           </span>
         )}
