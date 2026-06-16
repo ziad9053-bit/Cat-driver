@@ -1,11 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ShoppingCart, ShieldCheck, Truck, User } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 
 export default function Navbar() {
   const { cartItemsCount } = useCart();
+  const pathname = usePathname();
+
+  // Hide navbar on internal pages and login portals
+  const hiddenPaths = ['/admin', '/preparer', '/driver', '/login'];
+  const shouldHide = hiddenPaths.some(path => pathname?.startsWith(path));
+
+  if (shouldHide) return null;
 
   return (
     <nav className="navbar glass">

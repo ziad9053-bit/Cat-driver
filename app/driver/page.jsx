@@ -41,10 +41,12 @@ export default function DriverDashboard() {
           .maybeSingle();
 
         if (!dbUser) {
+          // Generate a unique phone number to prevent unique key violation (e.g. if '0500000002' is already taken)
+          const uniquePhone = '05' + Math.floor(10000000 + Math.random() * 90000000);
           await supabase.from('users').insert({
             id: activeDriverId,
-            name: 'سائق التوصيل',
-            phone: '0500000002',
+            name: 'سائق التوصيل التجريبي',
+            phone: uniquePhone,
             role: 'Driver'
           });
         }
