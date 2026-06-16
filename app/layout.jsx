@@ -6,6 +6,9 @@ import Navbar from './components/Navbar';
 export const metadata = {
   title: 'Cat Driver Store - متجر كات درايفر',
   description: 'خدمة التوصيل الفاخرة لاحتياجاتك اليومية.',
+  verification: {
+    google: '9dURtgX7JFddlPam0l1r86LKYrAML7FsMw-V3LMeyUw',
+  },
 };
 
 export default function RootLayout({ children }) {
