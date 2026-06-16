@@ -116,6 +116,14 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
   const resetForm = () => {
     setEditingProductId(null);
     setFormData({ name: '', price: '', unit_type: 'Kilo', category_id: '', is_offer: false, offer_label: '', offer_color: '#E65100' });
