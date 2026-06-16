@@ -198,7 +198,7 @@ export default function CartCheckout() {
 
       showToast('تم إرسال طلبك بنجاح! جاري تحويلك...', 'success');
       setIsRedirecting(true);
-      router.push(`/track?id=${order.id}`);
+      router.push(`/track/?id=${order.id}`);
       
       // Clear cart only after a delay to prevent UI glitching during router transition
       setTimeout(() => {

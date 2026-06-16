@@ -30,7 +30,7 @@ export default function WorkerLogin() {
       const targetPath = role === 'Preparer' ? '/preparer' : '/driver';
       // Attempt Next.js router first, fallback to direct location change if needed
       try {
-        router.push(targetPath);
+        router.push(`${targetPath}/`);
         // Fallback timeout in case router.push doesn't navigate
         setTimeout(() => {
           window.location.href = `/Cat-driver${targetPath}/`;

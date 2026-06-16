@@ -25,7 +25,7 @@ export default function AdminLogin() {
     } else {
       showToast('تم تسجيل الدخول بنجاح كمدير!', 'success');
       try {
-        router.push('/admin');
+        router.push('/admin/');
         setTimeout(() => {
           window.location.href = '/Cat-driver/admin/';
         }, 500);

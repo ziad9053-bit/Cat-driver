@@ -160,7 +160,7 @@ export default function ProductCatalog() {
         
         {/* Cart Item in Bottom Bar */}
         <button 
-          onClick={() => router.push('/cart')}
+          onClick={() => router.push('/cart/')}
           style={{
             background: 'none',
             border: 'none',
