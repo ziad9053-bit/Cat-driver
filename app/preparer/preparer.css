@@ -169,6 +169,34 @@
   width: 100%;
 }
 
+.order-actions {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #D4AF37, #C5A028);
+  color: #000;
+  border: none;
+  padding: 15px;
+  border-radius: var(--border-radius-md, 12px);
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  transition: var(--transition-fast, 0.2s ease);
+  width: 100%;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #C5A028, #B8931E);
+  transform: translateY(-2px);
+}
+
 @media (max-width: 768px) {
   .dashboard-grid {
     grid-template-columns: 1fr;

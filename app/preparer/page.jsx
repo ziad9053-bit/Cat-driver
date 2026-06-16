@@ -64,7 +64,15 @@ export default function PreparerDashboard() {
       .order('created_at', { ascending: true });
       
     if (error) console.error('Error fetching orders:', error);
-    if (data) setOrders(data);
+    if (data) {
+      setOrders(data);
+      // Keep selectedOrder in sync with fresh data
+      setSelectedOrder(prev => {
+        if (!prev) return prev;
+        const updated = data.find(o => o.id === prev.id);
+        return updated || prev;
+      });
+    }
 
     // Past orders (packed, delivered, or cancelled)
     const { data: pastData, error: pastErr } = await supabase
@@ -241,13 +249,20 @@ export default function PreparerDashboard() {
                 </div>
               )}
 
-              <div className="order-actions">
+              <div className="order-actions" style={{ marginTop: '20px' }}>
                 {selectedOrder.status === 'Pending' ? (
-                  <button className="btn-primary full-width" onClick={() => handleStartPacking(selectedOrder.id)}>
+                  <button 
+                    className="btn-primary full-width" 
+                    style={{ backgroundColor: 'var(--primary-color, #D4AF37)', color: '#000', border: 'none', padding: '15px', borderRadius: '12px', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer', width: '100%' }}
+                    onClick={() => handleStartPacking(selectedOrder.id)}
+                  >
                     البدء بالتحضير
                   </button>
                 ) : selectedOrder.status === 'Processing' && !selectedOrder.is_packed ? (
-                  <button className="btn-success full-width" onClick={() => handleFinishPacking(selectedOrder.id)}>
+                  <button 
+                    className="btn-success full-width" 
+                    onClick={() => handleFinishPacking(selectedOrder.id)}
+                  >
                     <CheckCircle size={20} /> تم التجهيز، بانتظار السائق
                   </button>
                 ) : null}
