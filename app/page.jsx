@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
-import { Plus, Minus, ShoppingBag } from 'lucide-react';
+import { Plus, Minus, ShoppingBag, Carrot, Wheat, Apple, Leaf } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import './catalog.css';
 
@@ -11,16 +11,24 @@ export default function ProductCatalog() {
   const { products, cart, updateQuantity, loading } = useCart();
   const router = useRouter();
 
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [categoriesList, setCategoriesList] = useState([{ id: 'All', name: 'الكل' }]);
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [categoriesList, setCategoriesList] = useState([]);
   
   // Fetch dynamic categories
-
   useEffect(() => {
     const loadCategories = async () => {
       const { data, error } = await supabase.from('categories').select('*');
       if (data && data.length > 0) {
-        setCategoriesList([{ id: 'All', name: 'الكل' }, ...data]);
+        // Order them consistently
+        const ordered = [...data].sort((a, b) => {
+          if (a.name.includes('خضار')) return -1;
+          if (b.name.includes('خضار')) return 1;
+          if (a.name.includes('بقول')) return -1;
+          if (b.name.includes('بقول')) return 1;
+          return 0;
+        });
+        setCategoriesList(ordered);
+        setActiveCategory(ordered[0].id); // Select first category by default
       }
     };
     loadCategories();
@@ -37,37 +45,108 @@ export default function ProductCatalog() {
   }
 
   // Filter products by category
-  const filteredProducts = activeCategory === 'All' 
-    ? products 
-    : products.filter(p => p.category_id == activeCategory);
+  const filteredProducts = activeCategory 
+    ? products.filter(p => p.category_id == activeCategory)
+    : [];
 
   return (
-    <div className="page-wrapper animate-fade-in">
+    <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
       <header className="page-header" style={{textAlign: 'center', margin: '20px 0'}}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>متجر كات درايفر</h1>
         <p style={{ color: 'var(--text-secondary)' }}>خدمة التوصيل الفاخرة لاحتياجاتك اليومية.</p>
       </header>
 
-      {/* Sticky Categories Bar */}
-      <div className="sticky-bar glass">
-        <div className="categories-filter">
-          {categoriesList.map(cat => (
+      {/* Persistent Bottom Navigation Bar */}
+      <div className="bottom-nav-bar glass" style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '70px',
+        background: 'rgba(26, 26, 26, 0.85)',
+        backdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        zIndex: 1000,
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        boxShadow: '0 -4px 20px rgba(0,0,0,0.4)'
+      }}>
+        {categoriesList.map(cat => {
+          let icon = <Leaf size={22} />;
+          if (cat.name.includes('خضار')) icon = <Carrot size={22} />;
+          else if (cat.name.includes('بقول')) icon = <Wheat size={22} />;
+          else if (cat.name.includes('فواك')) icon = <Apple size={22} />;
+
+          const isActive = activeCategory === cat.id;
+
+          return (
             <button 
               key={cat.id} 
-              className={`filter-btn ${activeCategory === cat.id ? 'active' : ''}`}
               onClick={() => setActiveCategory(cat.id)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: isActive ? 'var(--primary-color)' : 'var(--text-secondary)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px',
+                cursor: 'pointer',
+                transition: 'var(--transition-fast)',
+                fontSize: '0.85rem',
+                fontWeight: isActive ? 'bold' : 'normal',
+                flex: 1
+              }}
             >
-              {cat.name}
+              {icon}
+              <span>{cat.name}</span>
             </button>
-          ))}
-        </div>
+          );
+        })}
         
-        {/* Cart Icon in Sticky Bar */}
-        <button className="sticky-cart-btn" onClick={() => router.push('/cart')}>
-          <ShoppingBag size={24} />
-          {Object.keys(cart).length > 0 && (
-            <span className="cart-badge">{Object.values(cart).reduce((a, b) => a + b, 0)}</span>
-          )}
+        {/* Cart Item in Bottom Bar */}
+        <button 
+          onClick={() => router.push('/cart')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-secondary)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '4px',
+            cursor: 'pointer',
+            transition: 'var(--transition-fast)',
+            fontSize: '0.85rem',
+            position: 'relative',
+            flex: 1
+          }}
+        >
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ShoppingBag size={22} />
+            {Object.keys(cart).length > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-6px',
+                right: '-10px',
+                background: 'var(--primary-color)',
+                color: 'black',
+                borderRadius: '50%',
+                width: '18px',
+                height: '18px',
+                fontSize: '0.7rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold'
+              }}>
+                {Object.values(cart).reduce((a, b) => a + b, 0)}
+              </span>
+            )}
+          </div>
+          <span>السلة</span>
         </button>
       </div>
 
