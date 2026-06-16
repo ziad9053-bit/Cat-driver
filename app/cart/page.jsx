@@ -83,7 +83,20 @@ export default function CartCheckout() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setGpsLocation(`${position.coords.latitude}, ${position.coords.longitude}`);
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          setGpsLocation(`${lat}, ${lng}`);
+          
+          const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+          setManualAddress(prev => {
+            if (prev && prev.trim() !== '') {
+              // If user already typed something, append the link
+              return `${prev}\n\nرابط الموقع: ${mapsLink}`;
+            }
+            // Otherwise just set the link
+            return `رابط الموقع: ${mapsLink}`;
+          });
+          
           showToast('تم التقاط الموقع بنجاح! 📍', 'success');
         },
         (error) => {
