@@ -11,21 +11,43 @@ function OrderTrackingContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const [order, setOrder] = useState(null);
+  const [items, setItems] = useState([]);
+  const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchOrder = async () => {
-      const { data, error } = await supabase
+    const fetchOrderData = async () => {
+      // 1. Fetch Order details
+      const { data: orderData } = await supabase
         .from('orders')
         .select('*')
         .eq('id', id)
         .single();
         
-      if (data) setOrder(data);
+      if (orderData) {
+        setOrder(orderData);
+
+        // 2. Fetch Order Items
+        const { data: itemsData } = await supabase
+          .from('order_items')
+          .select('*, products(name, image_url, unit_type)')
+          .eq('order_id', id);
+          
+        if (itemsData) setItems(itemsData);
+
+        // 3. Fetch Invoice details
+        const { data: invoiceData } = await supabase
+          .from('invoices')
+          .select('*')
+          .eq('order_id', id)
+          .maybeSingle();
+          
+        if (invoiceData) setInvoice(invoiceData);
+      }
       setLoading(false);
     };
 
-    fetchOrder();
+    fetchOrderData();
 
     const channel = supabase
       .channel(`order-${id}`)
@@ -64,13 +86,13 @@ function OrderTrackingContent() {
   ];
 
   return (
-    <div className="page-wrapper animate-fade-in track-page">
-      <header className="page-header" style={{textAlign: 'center', marginBottom: '30px'}}>
-        <Link href="/" className="back-link" style={{position: 'absolute', right: '20px', top: '20px'}}>
+    <div className="page-wrapper animate-fade-in track-page" style={{ maxWidth: '600px', margin: '0 auto' }}>
+      <header className="page-header" style={{textAlign: 'center', marginBottom: '30px', position: 'relative'}}>
+        <Link href="/" className="back-link" style={{position: 'absolute', right: '10px', top: '10px', display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: 'var(--primary-color)' }}>
           <ArrowRight size={20} /> للرئيسية
         </Link>
-        <h1 style={{ color: 'var(--primary-color)' }}>تتبع طلبك</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>رقم الطلب: {order.id.split('-')[0].toUpperCase()}</p>
+        <h1 style={{ color: 'var(--primary-color)', margin: '10px 0 0 0' }}>تتبع طلبك</h1>
+        <p style={{ color: 'var(--text-secondary)', margin: '5px 0 0 0' }}>رقم الطلب: {order.id.split('-')[0].toUpperCase()}</p>
       </header>
 
       <div className="glass track-card">
@@ -94,6 +116,67 @@ function OrderTrackingContent() {
           {currentStep === 3 && <p>طلبك تم تجهيزه وهو الآن بانتظار السائق لاستلامه والتوجه إليك 🚀</p>}
           {currentStep === 4 && <p>السائق استلم طلبك وهو الآن في الطريق لمنزلك، ترقب وصوله! 🛵</p>}
           {currentStep === 5 && <p>تم تسليم الطلب بنجاح، بالعافية ونتمنى لك يوم سعيد! 🎉</p>}
+        </div>
+      </div>
+
+      {/* Product Items Details Card */}
+      <div className="glass track-card" style={{ marginTop: '24px', padding: '24px' }}>
+        <h2 style={{ marginBottom: '20px', color: 'var(--primary-color)', fontSize: '1.4rem' }}>تفاصيل المشتريات ({items.length})</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {items.map(item => {
+            const unitTranslations = {
+              'Kilo': 'كيلو',
+              'SmallBox': 'فلين صغير',
+              'MediumBox': 'فلين وسط',
+              'LargeBox': 'فلين كبير',
+              'Box': 'صندوق'
+            };
+            const unitName = item.products?.unit_type ? (unitTranslations[item.products.unit_type] || item.products.unit_type) : 'وحدة';
+            
+            return (
+              <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {item.products?.image_url ? (
+                    <img src={item.products.image_url} alt="" style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: 'var(--border-radius-sm)' }} />
+                  ) : (
+                    <div style={{ width: '48px', height: '48px', borderRadius: 'var(--border-radius-sm)', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package size={20} /></div>
+                  )}
+                  <div>
+                    <h3 style={{ fontSize: '1.05rem', margin: 0, fontWeight: '600' }}>{item.products?.name || 'منتج طازج'}</h3>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      {Number(item.price_at_purchase).toFixed(2)} ريال / {unitName}
+                    </p>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>الكمية: {Number(item.quantity)}</span>
+                  <span style={{ color: 'var(--accent-color)', fontWeight: '700', fontSize: '1rem', marginTop: '2px' }}>
+                    {Number(item.price_at_purchase * item.quantity).toFixed(2)} ريال
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Invoice Summary */}
+        <div style={{ marginTop: '20px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {invoice && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+              <span>رسوم التوصيل</span>
+              <span>{Number(invoice.delivery_fee).toFixed(2)} ريال</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.3rem', fontWeight: 'bold', color: 'var(--primary-color)', marginTop: '8px' }}>
+            <span>الإجمالي الكلي</span>
+            <span>{Number(order.total_price).toFixed(2)} ريال</span>
+          </div>
+          {invoice && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+              <span>طريقة الدفع</span>
+              <span>{invoice.payment_method === 'Cash' ? 'الدفع عند الاستلام' : 'بطاقة بنكية / أبل باي'}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
