@@ -112,12 +112,6 @@ export default function PreparerDashboard() {
   const handleSelectOrder = (order) => {
     setSelectedOrderId(order.id);
     loadOrderItems(order.id);
-    // Scroll to order details so the worker sees it immediately
-    setTimeout(() => {
-      if (detailsRef.current) {
-        detailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
   };
 
   const handleStartPacking = async (orderId) => {

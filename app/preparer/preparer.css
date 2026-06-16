@@ -201,4 +201,7 @@
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
+  .order-details {
+    order: -1;
+  }
 }
