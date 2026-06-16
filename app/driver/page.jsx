@@ -1,0 +1,169 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import { MapPin, Truck, Home, Phone, BellRing, Navigation } from 'lucide-react';
+import './driver.css';
+
+export default function DriverDashboard() {
+  const [orders, setOrders] = useState([]);
+  const [myDeliveries, setMyDeliveries] = useState([]);
+  
+  // In a real app, driver ID comes from auth context
+  // Here we'll just mock it or use a default session
+  const DRIVER_ID = "driver-123";
+
+  useEffect(() => {
+    fetchOrders();
+
+    const channel = supabase
+      .channel('driver-orders')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+        if (payload.eventType === 'UPDATE' && payload.new.is_packed && payload.new.status === 'Processing') {
+          playNotification();
+        }
+        fetchOrders();
+      })
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, []);
+
+  const fetchOrders = async () => {
+    // Fetch ready orders
+    const { data: readyOrders } = await supabase
+      .from('orders')
+      .select('*, users(name, phone, location_gps)')
+      .eq('status', 'Processing')
+      .eq('is_packed', true)
+      .order('updated_at', { ascending: false });
+      
+    // Fetch my active deliveries
+    const { data: activeDeliveries } = await supabase
+      .from('orders')
+      .select('*, users(name, phone, location_gps)')
+      .eq('status', 'OnTheWay')
+      .eq('driver_id', DRIVER_ID)
+      .order('updated_at', { ascending: false });
+
+    if (readyOrders) setOrders(readyOrders);
+    if (activeDeliveries) setMyDeliveries(activeDeliveries);
+  };
+
+  const playNotification = () => {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.type = 'square';
+      oscillator.frequency.value = 523.25; // C5
+      gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.3);
+    } catch (e) {
+      console.log('Audio notification failed', e);
+    }
+  };
+
+  const handleAcceptDelivery = async (orderId) => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ 
+        status: 'OnTheWay',
+        driver_id: DRIVER_ID
+      })
+      .eq('id', orderId);
+      
+    if (error) alert('Error: ' + error.message);
+    else fetchOrders();
+  };
+
+  const handleCompleteDelivery = async (orderId) => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: 'Delivered' })
+      .eq('id', orderId);
+      
+    if (error) alert('Error: ' + error.message);
+    else {
+      alert('عمل رائع! تم تسليم الطلب.');
+      fetchOrders();
+    }
+  };
+
+  const openGoogleMaps = (gpsCoords) => {
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${gpsCoords}`, '_blank');
+  };
+
+  return (
+    <div className="page-wrapper driver-dashboard">
+      <header className="page-header" style={{textAlign: 'center', marginBottom: '30px'}}>
+        <h1 style={{ color: 'var(--primary-color)' }}>شاشة السائق 🛵</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>الطلبات الجاهزة بانتظار التوصيل.</p>
+      </header>
+
+      <div className="driver-grid">
+        {/* Active Deliveries Section */}
+        <div className="deliveries-section my-deliveries">
+          <h2>طلباتي الحالية (قيد التوصيل)</h2>
+          {myDeliveries.length === 0 ? (
+            <div className="glass empty-state">لا يوجد لديك طلبات قيد التوصيل حالياً.</div>
+          ) : (
+            myDeliveries.map(order => (
+              <div key={order.id} className="glass driver-card active-delivery">
+                <div className="card-header">
+                  <h3>طلب #{order.id.split('-')[0].toUpperCase()}</h3>
+                  <span className="price-tag">{order.total_price} ريال</span>
+                </div>
+                
+                <div className="customer-info">
+                  <p><Home size={16} /> {order.users?.name}</p>
+                  <p><Phone size={16} /> {order.users?.phone}</p>
+                </div>
+                
+                <div className="card-actions">
+                  <button className="btn-maps" onClick={() => openGoogleMaps(order.users?.location_gps)}>
+                    <Navigation size={18} /> موقع العميل (خرائط جوجل)
+                  </button>
+                  <button className="btn-complete" onClick={() => handleCompleteDelivery(order.id)}>
+                    <Home size={18} /> تم تسليم الطلب للعميل
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Ready Orders Section */}
+        <div className="deliveries-section ready-orders">
+          <h2>طلبات جاهزة بالمتجر للاستلام ({orders.length})</h2>
+          {orders.length === 0 ? (
+            <div className="glass empty-state">
+              <BellRing size={32} style={{ opacity: 0.5, marginBottom: '10px' }} />
+              <p>لا يوجد طلبات جاهزة للاستلام بالوقت الحالي.</p>
+            </div>
+          ) : (
+            orders.map(order => (
+              <div key={order.id} className="glass driver-card">
+                <div className="card-header">
+                  <h3>طلب #{order.id.split('-')[0].toUpperCase()}</h3>
+                  <span className="price-tag">{order.total_price} ريال</span>
+                </div>
+                
+                <div className="customer-info">
+                  <p><Home size={16} /> حي العميل (متاح بعد القبول)</p>
+                </div>
+                
+                <button className="btn-accept full-width" onClick={() => handleAcceptDelivery(order.id)}>
+                  <Truck size={20} /> استلام هذا الطلب للتوصيل
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

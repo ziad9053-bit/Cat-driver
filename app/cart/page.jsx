@@ -106,9 +106,9 @@ export default function CartCheckout() {
         
       if (invoiceErr) throw invoiceErr;
 
-      alert('تم إرسال طلبك بنجاح! شكراً لتسوقك معنا.');
+      alert('تم إرسال طلبك بنجاح! سيتم تحويلك لصفحة التتبع.');
       clearCart();
-      router.push('/');
+      router.push(`/track/${order.id}`);
       
     } catch (error) {
       console.error('Checkout error:', error);
