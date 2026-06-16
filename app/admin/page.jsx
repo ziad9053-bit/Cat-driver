@@ -4,7 +4,8 @@ import './admin.css';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { convertToWebP } from '../../lib/image-utils';
-import { Plus, Camera, Image as ImageIcon, CheckCircle, Package, Edit, Trash2, X, Grid } from 'lucide-react';
+import { Plus, Camera, Image as ImageIcon, CheckCircle, Package, Edit, Trash2, X, Grid, Settings } from 'lucide-react';
+import SettingsTab from './SettingsTab';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
@@ -15,6 +16,7 @@ export default function AdminDashboard() {
   const [categories, setCategories] = useState([]);
   const [units, setUnits] = useState([]);
   const [showUnitsModal, setShowUnitsModal] = useState(false);
+  const [showSettingsTab, setShowSettingsTab] = useState(false);
   const [newUnitNameAr, setNewUnitNameAr] = useState('');
   const [isSavingUnit, setIsSavingUnit] = useState(false);
 
@@ -256,6 +258,9 @@ export default function AdminDashboard() {
       <header className="admin-header" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
         <h1 style={{ flexGrow: 1 }}>لوحة تحكم المدير</h1>
         <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => setShowSettingsTab(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: 'var(--border-radius-md)', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer' }}>
+            <Settings size={18} /> إعدادات التطبيق
+          </button>
           <button onClick={() => setShowUnitsModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: 'var(--border-radius-md)', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer' }}>
             ⚖️ إدارة وحدات الوزن
           </button>
@@ -265,7 +270,9 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {showAddForm && (
+      {showSettingsTab && <SettingsTab onClose={() => setShowSettingsTab(false)} />}
+
+      {showAddForm && !showSettingsTab && (
         <div className="glass admin-form-card animate-slide-up">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h2 style={{ marginBottom: 0 }}>{editingProductId ? 'تعديل صنف' : 'إضافة صنف جديد'}</h2>

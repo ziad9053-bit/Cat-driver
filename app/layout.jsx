@@ -1,5 +1,6 @@
 import './globals.css';
 import { CartProvider } from '../context/CartContext';
+import { SettingsProvider } from '../context/SettingsContext';
 import Navbar from './components/Navbar';
 
 export const metadata = {
@@ -11,14 +12,16 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ar" dir="rtl">
       <body>
-        <CartProvider>
-          <div className="app-layout">
-            <Navbar />
-            <main className="container">
-              {children}
-            </main>
-          </div>
-        </CartProvider>
+        <SettingsProvider>
+          <CartProvider>
+            <div className="app-layout">
+              <Navbar />
+              <main className="container">
+                {children}
+              </main>
+            </div>
+          </CartProvider>
+        </SettingsProvider>
       </body>
     </html>
   );

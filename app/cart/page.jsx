@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, CreditCard, Banknote, Trash2, Plus, Minus, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useSettings } from '../../context/SettingsContext';
 import { supabase } from '../../lib/supabase';
 import '../cart.css';
 import Link from 'next/link';
 
 export default function CartCheckout() {
   const router = useRouter();
+  const { settings } = useSettings();
   
   const cartContext = useCart();
   const { 
@@ -192,7 +194,7 @@ export default function CartCheckout() {
           <h2>سلة مشترياتك</h2>
           {cartItems.length === 0 ? (
             <div className="empty-cart glass">
-              <p>سلتك فارغة حالياً.</p>
+              <p>{settings?.cart_empty_text || 'سلتك فارغة حالياً.'}</p>
               <Link href="/" className="continue-shopping">تصفح المنتجات</Link>
             </div>
           ) : (
@@ -321,7 +323,7 @@ export default function CartCheckout() {
       {cartItems.length > 0 && (
         <div className="sticky-footer glass animate-slide-up" style={{ animationDelay: '0.5s' }}>
           <button className="submit-btn" onClick={submitOrder} disabled={isSubmitting}>
-            <span>{isSubmitting ? 'جاري إرسال الطلب...' : 'إرسال الطلب'}</span>
+            <span>{isSubmitting ? 'جاري إرسال الطلب...' : (settings?.cart_checkout_btn || 'إتمام الطلب')}</span>
             <ArrowRight size={20} />
           </button>
         </div>

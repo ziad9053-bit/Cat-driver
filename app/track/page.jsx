@@ -6,10 +6,12 @@ import { CheckCircle, Clock, Package, Truck, Home, ArrowRight } from 'lucide-rea
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
+import { useSettings } from '../../context/SettingsContext';
 import './track.css';
 
 function OrderTrackingContent() {
   const { unitTranslations } = useCart();
+  const { settings } = useSettings();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const [order, setOrder] = useState(null);
@@ -101,7 +103,7 @@ function OrderTrackingContent() {
         <Link href="/" className="back-link" style={{position: 'absolute', right: '10px', top: '10px', display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: 'var(--primary-color)' }}>
           <ArrowRight size={20} /> للرئيسية
         </Link>
-        <h1 style={{ color: 'var(--primary-color)', margin: '10px 0 0 0' }}>تتبع طلبك</h1>
+        <h1 style={{ color: 'var(--primary-color)', margin: '10px 0 0 0' }}>{settings?.track_title || 'تتبع طلبك'}</h1>
         <p style={{ color: 'var(--text-secondary)', margin: '5px 0 0 0' }}>رقم الطلب: {order.id.split('-')[0].toUpperCase()}</p>
       </header>
 
@@ -121,11 +123,11 @@ function OrderTrackingContent() {
         </div>
 
         <div className="status-message">
-          {currentStep === 1 && <p>طلبك الآن في قائمة الانتظار، وسيبدأ عاملنا بجمعه قريباً! ⏱️</p>}
-          {currentStep === 2 && <p>يتم الآن تجهيز خضرواتك وفواكهك الطازجة بعناية فائقة وتغليفها 📦</p>}
-          {currentStep === 3 && <p>طلبك تم تجهيزه وهو الآن بانتظار السائق لاستلامه والتوجه إليك 🚀</p>}
-          {currentStep === 4 && <p>السائق استلم طلبك وهو الآن في الطريق لمنزلك، ترقب وصوله! 🛵</p>}
-          {currentStep === 5 && <p>تم تسليم الطلب بنجاح، بالعافية ونتمنى لك يوم سعيد! 🎉</p>}
+          {currentStep === 1 && <p>{settings?.track_queue || 'طلبك الآن في قائمة الانتظار، وسيبدأ عاملنا بجمعه قريباً! ⏱️'}</p>}
+          {currentStep === 2 && <p>{settings?.track_preparing || 'يتم الآن تجهيز خضرواتك وفواكهك الطازجة بعناية فائقة وتغليفها 📦'}</p>}
+          {currentStep === 3 && <p>{settings?.track_ready || 'طلبك تم تجهيزه وهو الآن بانتظار السائق لاستلامه والتوجه إليك 🚀'}</p>}
+          {currentStep === 4 && <p>{settings?.track_on_way || 'السائق استلم طلبك وهو الآن في الطريق لمنزلك، ترقب وصوله! 🛵'}</p>}
+          {currentStep === 5 && <p>{settings?.track_delivered || 'تم تسليم الطلب بنجاح، بالعافية ونتمنى لك يوم سعيد! 🎉'}</p>}
         </div>
       </div>
 
@@ -181,6 +183,18 @@ function OrderTrackingContent() {
             </div>
           )}
         </div>
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: '30px' }}>
+        <a 
+          href={settings?.whatsapp_link || 'https://wa.me/966500000000'} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="btn-primary"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: 'var(--border-radius-full)', background: '#25D366', color: 'white', textDecoration: 'none', fontWeight: 'bold' }}
+        >
+          📞 تواصل مع الدعم الفني
+        </a>
       </div>
     </div>
   );

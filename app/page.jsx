@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import { Plus, Minus, ShoppingBag, Carrot, Wheat, Apple, Leaf, Home } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useSettings } from '../context/SettingsContext';
 import './catalog.css';
 
 export default function ProductCatalog() {
   const { products, cart, updateQuantity, loading, unitTranslations } = useCart();
+  const { settings, loading: settingsLoading } = useSettings();
   const router = useRouter();
 
   const [activeCategory, setActiveCategory] = useState(null);
@@ -36,12 +38,12 @@ export default function ProductCatalog() {
     loadCategories();
   }, []);
 
-  if (!mounted || loading) {
+  if (!mounted || loading || settingsLoading) {
     return (
       <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
         <header className="page-header" style={{textAlign: 'center', margin: '20px 0'}}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>متجر كات درايفر</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>خدمة التوصيل الفاخرة لاحتياجاتك اليومية.</p>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>{settings?.store_name || 'متجر كات درايفر'}</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>{settings?.store_subtitle || 'خدمة التوصيل الفاخرة لاحتياجاتك اليومية.'}</p>
         </header>
 
         {/* Stable pulsating skeletons to prevent layout shift & flickering */}
@@ -62,8 +64,8 @@ export default function ProductCatalog() {
   return (
     <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
       <header className="page-header" style={{textAlign: 'center', margin: '20px 0'}}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>متجر كات درايفر</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>خدمة التوصيل الفاخرة لاحتياجاتك اليومية.</p>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>{settings?.store_name || 'متجر كات درايفر'}</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>{settings?.store_subtitle || 'خدمة التوصيل الفاخرة لاحتياجاتك اليومية.'}</p>
       </header>
 
       {/* Persistent Bottom Navigation Bar */}

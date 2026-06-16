@@ -4,9 +4,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShoppingCart, ShieldCheck, Truck, User } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function Navbar() {
   const { cartItemsCount } = useCart();
+  const { settings } = useSettings();
   const pathname = usePathname();
 
   // Hide navbar on internal pages and login portals
@@ -27,7 +29,7 @@ export default function Navbar() {
         {/* Logo (Center) */}
         <Link href="/" className="logo" style={{justifyContent: 'center', flex: 1, textAlign: 'center'}}>
           <Truck className="logo-icon" size={28} />
-          <span style={{ color: 'var(--primary-color)' }}>كات درايفر</span>
+          <span style={{ color: 'var(--primary-color)' }}>{settings?.store_name || 'كات درايفر'}</span>
         </Link>
 
         {/* Worker Login & Cart (Top Right in RTL = Left visually) */}
