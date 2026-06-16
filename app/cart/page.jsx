@@ -313,6 +313,7 @@ export default function CartCheckout() {
                   }}
                   required
                 />
+              </div>
               <div className="input-group" style={{ display: deliveryType === 'Delivery' ? 'block' : 'none' }}>
                 <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', color: 'var(--text-secondary)', fontWeight: '600' }}>
                   <span>عنوان التوصيل <span style={{ color: '#ff4d4f' }}>*</span></span>
