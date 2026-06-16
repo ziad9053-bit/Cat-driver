@@ -1,11 +1,13 @@
 'use client';
 import { useState } from 'react';
 
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 
 export default function WorkerLogin() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('Driver');
+  const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,7 +21,17 @@ export default function WorkerLogin() {
       alert('كلمة المرور غير صحيحة أو الحساب غير موجود');
     } else {
       alert(`تم تسجيل الدخول بنجاح كـ ${role === 'Preparer' ? 'عامل تحضير' : 'سائق توصيل'}!`);
-      // TODO: Redirect to Worker Dashboard
+      const targetPath = role === 'Preparer' ? '/preparer' : '/driver';
+      // Attempt Next.js router first, fallback to direct location change if needed
+      try {
+        router.push(targetPath);
+        // Fallback timeout in case router.push doesn't navigate
+        setTimeout(() => {
+          window.location.href = `/Cat-driver${targetPath}`;
+        }, 500);
+      } catch (e) {
+        window.location.href = `/Cat-driver${targetPath}`;
+      }
     }
   };
 
