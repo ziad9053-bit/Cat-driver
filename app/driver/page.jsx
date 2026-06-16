@@ -8,13 +8,49 @@ import './driver.css';
 export default function DriverDashboard() {
   const [orders, setOrders] = useState([]);
   const [myDeliveries, setMyDeliveries] = useState([]);
-  
-  // In a real app, driver ID comes from auth context
-  // Here we'll just mock it or use a default session
-  const DRIVER_ID = "driver-123";
+  const [driverId, setDriverId] = useState(null);
 
   useEffect(() => {
-    fetchOrders();
+    const initDriver = async () => {
+      let activeDriverId = null;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          activeDriverId = user.id;
+        }
+      } catch (e) {
+        console.error('Auth check failed:', e);
+      }
+
+      if (!activeDriverId) {
+        // Fallback to a valid test driver UUID if no auth session
+        activeDriverId = '22222222-2222-2222-2222-222222222222';
+      }
+
+      setDriverId(activeDriverId);
+
+      // Self-heal: ensure the driver user exists in public.users to satisfy foreign key constraints
+      try {
+        const { data: dbUser } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', activeDriverId)
+          .maybeSingle();
+
+        if (!dbUser) {
+          await supabase.from('users').insert({
+            id: activeDriverId,
+            name: 'سائق التوصيل',
+            phone: '0500000002',
+            role: 'Driver'
+          });
+        }
+      } catch (dbErr) {
+        console.error('Self-healing public user creation failed:', dbErr);
+      }
+    };
+
+    initDriver();
 
     const channel = supabase
       .channel('driver-orders')
@@ -22,14 +58,24 @@ export default function DriverDashboard() {
         if (payload.eventType === 'UPDATE' && payload.new.is_packed && payload.new.status === 'Processing') {
           playNotification();
         }
-        fetchOrders();
+        // Refresh with latest driver ID
+        if (driverId) {
+          fetchOrders(driverId);
+        }
       })
       .subscribe();
 
     return () => supabase.removeChannel(channel);
   }, []);
 
-  const fetchOrders = async () => {
+  // Fetch orders when driver ID is loaded or changes
+  useEffect(() => {
+    if (driverId) {
+      fetchOrders(driverId);
+    }
+  }, [driverId]);
+
+  const fetchOrders = async (currentDriverId) => {
     // Fetch ready orders
     const { data: readyOrders, error: readyErr } = await supabase
       .from('orders')
@@ -45,7 +91,7 @@ export default function DriverDashboard() {
       .from('orders')
       .select('*, users!orders_user_id_fkey(name, phone, location_gps)')
       .eq('status', 'OnTheWay')
-      .eq('driver_id', DRIVER_ID)
+      .eq('driver_id', currentDriverId)
       .order('created_at', { ascending: false });
 
     if (activeErr) console.error('Error fetching active deliveries:', activeErr);
@@ -72,16 +118,20 @@ export default function DriverDashboard() {
   };
 
   const handleAcceptDelivery = async (orderId) => {
+    if (!driverId) {
+      alert('يرجى الانتظار حتى تحميل بيانات السائق.');
+      return;
+    }
     const { error } = await supabase
       .from('orders')
       .update({ 
         status: 'OnTheWay',
-        driver_id: DRIVER_ID
+        driver_id: driverId
       })
       .eq('id', orderId);
       
     if (error) alert('Error: ' + error.message);
-    else fetchOrders();
+    else fetchOrders(driverId);
   };
 
   const handleCompleteDelivery = async (orderId) => {
