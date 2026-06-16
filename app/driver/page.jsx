@@ -10,8 +10,10 @@ export default function DriverDashboard() {
   const [myDeliveries, setMyDeliveries] = useState([]);
   const [pastOrders, setPastOrders] = useState([]);
   const [driverId, setDriverId] = useState(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const initDriver = async () => {
       let activeDriverId = null;
       try {
@@ -162,6 +164,12 @@ export default function DriverDashboard() {
   const openGoogleMaps = (gpsCoords) => {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${gpsCoords}`, '_blank');
   };
+
+  if (!mounted) {
+    return (
+      <div className="page-wrapper" style={{ opacity: 0 }}></div>
+    );
+  }
 
   return (
     <div className="page-wrapper driver-dashboard">

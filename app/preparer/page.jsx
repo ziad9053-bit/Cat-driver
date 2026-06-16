@@ -12,6 +12,7 @@ export default function PreparerDashboard() {
   const [orderItems, setOrderItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
   const [unitTranslations, setUnitTranslations] = useState({});
+  const [mounted, setMounted] = useState(false);
 
   const fetchUnits = async () => {
     const { data } = await supabase.from('product_units').select('*');
@@ -25,6 +26,7 @@ export default function PreparerDashboard() {
   };
 
   useEffect(() => {
+    setMounted(true);
     fetchOrders();
     fetchUnits();
 
@@ -135,6 +137,12 @@ export default function PreparerDashboard() {
       fetchOrders();
     }
   };
+
+  if (!mounted) {
+    return (
+      <div className="page-wrapper" style={{ opacity: 0 }}></div>
+    );
+  }
 
   return (
     <div className="page-wrapper preparer-dashboard">

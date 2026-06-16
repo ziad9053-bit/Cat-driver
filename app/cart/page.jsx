@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, CreditCard, Banknote, Trash2, Plus, Minus, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
@@ -21,6 +21,11 @@ export default function CartCheckout() {
     loading = false,
     unitTranslations = {}
   } = cartContext || {};
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [customerName, setCustomerName] = useState('');
@@ -142,11 +147,14 @@ export default function CartCheckout() {
     }
   };
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="cart-page">
-        <div className="cart-header glass">
-          <h1>Loading Cart...</h1>
+        <div className="cart-header glass animate-pulse" style={{ height: '80px', borderRadius: 'var(--border-radius-md)' }}></div>
+        <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          {[1, 2].map(i => (
+            <div key={i} className="glass animate-pulse" style={{ height: '120px', borderRadius: 'var(--border-radius-md)' }}></div>
+          ))}
         </div>
       </div>
     );

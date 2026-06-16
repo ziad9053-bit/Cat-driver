@@ -13,9 +13,11 @@ export default function ProductCatalog() {
 
   const [activeCategory, setActiveCategory] = useState(null);
   const [categoriesList, setCategoriesList] = useState([]);
+  const [mounted, setMounted] = useState(false);
   
   // Fetch dynamic categories
   useEffect(() => {
+    setMounted(true);
     const loadCategories = async () => {
       const { data, error } = await supabase.from('categories').select('*');
       if (data && data.length > 0) {
@@ -34,11 +36,19 @@ export default function ProductCatalog() {
     loadCategories();
   }, []);
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
-      <div className="page-wrapper animate-fade-in">
-        <div className="glass loading-card" style={{textAlign: 'center', padding: '40px'}}>
-          <h1 style={{ color: 'var(--primary-color)' }}>جاري تحميل متجر كات درايفر... 🚚</h1>
+      <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
+        <header className="page-header" style={{textAlign: 'center', margin: '20px 0'}}>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>متجر كات درايفر</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>خدمة التوصيل الفاخرة لاحتياجاتك اليومية.</p>
+        </header>
+
+        {/* Stable pulsating skeletons to prevent layout shift & flickering */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} className="glass animate-pulse" style={{ height: '160px', borderRadius: 'var(--border-radius-lg)', border: '1px solid rgba(212, 175, 55, 0.1)' }}></div>
+          ))}
         </div>
       </div>
     );

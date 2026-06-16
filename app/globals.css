@@ -1,43 +1,45 @@
 /* Additions to globals.css for Layout & Navbar */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --primary-color: #D4AF37; /* Gold */
-  --primary-dark: #B5952F;
-  --primary-light: #F3E5AB;
+  --primary-color: #D4AF37; /* Royal Gold */
+  --primary-dark: #AA7C11;
+  --primary-light: #DFC15D;
   --accent-color: #E65100; /* Deep Orange */
   
-  /* Enforce Dark Theme as default for Premium Feel */
-  --background-color: #0A0A0A;
-  --surface-color: #1A1A1A;
-  --text-primary: #F5F5F5;
-  --text-secondary: #B0B0B0;
-  --text-tertiary: #757575;
+  /* Luxury Dark Theme (Midnight Emerald + Gold Velvet) */
+  --background-color: #030806; /* Very deep midnight green-black */
+  --surface-color: #071510; /* Rich dark forest emerald */
+  --surface-card: #0A2219; /* Lighter emerald card */
+  --text-primary: #FFFFFF;
+  --text-secondary: #A3BFB5; /* Soft sage/mint green-grey */
+  --text-tertiary: #6E887E; /* Forest green grey shadow */
   
   --error-color: #EF5350;
-  --success-color: #66BB6A;
+  --success-color: #2ECC71; /* Fresh emerald green */
   
-  --border-radius-sm: 8px;
-  --border-radius-md: 16px;
-  --border-radius-lg: 24px;
-  --border-radius-xl: 32px;
+  --border-radius-sm: 12px;
+  --border-radius-md: 20px;
+  --border-radius-lg: 28px;
+  --border-radius-xl: 36px;
   
-  --shadow-sm: 0 4px 6px rgba(0,0,0,0.3);
-  --shadow-md: 0 8px 15px rgba(0,0,0,0.4);
-  --shadow-lg: 0 15px 35px rgba(0,0,0,0.5);
+  --shadow-sm: 0 4px 6px rgba(0,0,0,0.4);
+  --shadow-md: 0 8px 20px rgba(0,0,0,0.5), 0 0 15px rgba(212, 175, 55, 0.05);
+  --shadow-lg: 0 15px 35px rgba(0,0,0,0.6), 0 0 30px rgba(212, 175, 55, 0.08);
   
-  --transition-fast: 0.2s ease;
-  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   --navbar-height: 80px;
 }
 
+/* Force dark theme variables across all light/dark system settings */
 @media (prefers-color-scheme: light) {
-  /* Keep it dark anyway or slightly lighter dark for premium */
   :root {
-    --background-color: #121212;
-    --surface-color: #1E1E1E;
+    --background-color: #030806;
+    --surface-color: #071510;
+    --surface-card: #0A2219;
     --text-primary: #FFFFFF;
-    --text-secondary: #CCCCCC;
+    --text-secondary: #A3BFB5;
   }
 }
 
@@ -48,10 +50,10 @@
 }
 
 body {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Cairo', 'Outfit', sans-serif;
   background-color: var(--background-color);
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -72,8 +74,20 @@ button:active {
   transform: scale(0.97);
 }
 
-input, textarea {
+input, textarea, select {
   font-family: inherit;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  color: white;
+  padding: 12px;
+  border-radius: var(--border-radius-sm);
+  outline: none;
+  transition: var(--transition-fast);
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.15);
 }
 
 /* Layout Utilities */
@@ -81,6 +95,7 @@ input, textarea {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: var(--background-color);
 }
 
 .container {
@@ -95,16 +110,17 @@ input, textarea {
 
 /* Glassmorphism */
 .glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(7, 21, 16, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  box-shadow: var(--shadow-md);
 }
 
 @media (prefers-color-scheme: dark) {
   .glass {
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(7, 21, 16, 0.7);
+    border: 1px solid rgba(212, 175, 55, 0.18);
   }
 }
 
@@ -344,4 +360,14 @@ input, textarea {
 .sticky-cart-btn .cart-badge {
   top: -6px;
   right: -6px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.55; }
+}
+
+.animate-pulse {
+  animation: pulse 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: rgba(212, 175, 55, 0.04) !important;
 }

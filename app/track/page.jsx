@@ -16,8 +16,10 @@ function OrderTrackingContent() {
   const [items, setItems] = useState([]);
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const fetchOrderData = async () => {
       // 1. Fetch Order details
       const { data: orderData } = await supabase
@@ -63,8 +65,14 @@ function OrderTrackingContent() {
     };
   }, [id]);
 
-  if (loading) {
-    return <div className="page-wrapper"><div className="glass" style={{padding: '40px', textAlign: 'center'}}>جاري جلب تفاصيل الطلب...</div></div>;
+  if (!mounted || loading) {
+    return (
+      <div className="page-wrapper animate-fade-in">
+        <div className="glass animate-pulse" style={{ padding: '40px', borderRadius: 'var(--border-radius-lg)', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: '1.2rem', color: 'var(--primary-color)', fontWeight: 'bold' }}>جاري جلب تفاصيل الطلب... 🚚</span>
+        </div>
+      </div>
+    );
   }
 
   if (!order) {
