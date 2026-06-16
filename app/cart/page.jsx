@@ -42,6 +42,7 @@ export default function CartCheckout() {
   const [gpsLocation, setGpsLocation] = useState(null);
   const [deliveryType, setDeliveryType] = useState('Delivery');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handlePhoneChange = (e) => {
     let val = e.target.value.replace(/[^0-9]/g, '');
@@ -175,14 +176,18 @@ export default function CartCheckout() {
         
       if (invoiceErr) throw invoiceErr;
 
-      showToast('تم إرسال طلبك بنجاح! سيتم تحويلك لصفحة التتبع.', 'success');
-      clearCart();
+      showToast('تم إرسال طلبك بنجاح! جاري تحويلك...', 'success');
+      setIsRedirecting(true);
       router.push(`/track?id=${order.id}`);
+      
+      // Clear cart only after a delay to prevent UI glitching during router transition
+      setTimeout(() => {
+        clearCart();
+      }, 2000);
       
     } catch (error) {
       console.error('Checkout error:', error);
       showToast('حدث خطأ أثناء إرسال الطلب: ' + error.message, 'error');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -215,7 +220,7 @@ export default function CartCheckout() {
         <h1>إتمام الطلب</h1>
       </header>
 
-      <div className="cart-content">
+      <div className="cart-content" style={{ opacity: isRedirecting ? 0.5 : 1, pointerEvents: isRedirecting ? 'none' : 'auto', transition: 'all 0.3s ease' }}>
         <section className="cart-items-section animate-slide-up" style={{ animationDelay: '0.1s' }}>
           <h2>سلة مشترياتك</h2>
           {cartItems.length === 0 ? (
