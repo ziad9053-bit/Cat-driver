@@ -166,7 +166,7 @@ function InvoiceContent() {
             <Printer size={20} />
             طباعة الفاتورة
           </button>
-          <Link href={`/track?id=${order.id}`} className="btn-back">
+          <Link href={`/track/?id=${order.id}`} className="btn-back">
             <ArrowRight size={20} />
             العودة للتتبع
           </Link>
