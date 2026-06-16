@@ -110,8 +110,11 @@ function OrderTrackingContent() {
     { num: 5, title: 'تم التوصيل', icon: <Home size={24} /> }
   ];
 
-  const isCompleted = currentStep === steps.length;
-  const qrColor = isCompleted ? 'var(--success-color)' : '#FFD700'; // Green if completed, Gold otherwise
+  // The order is considered "ready/packed" when the preparer finishes.
+  const isCompleted = order.is_packed === true || order.status === 'Delivered' || order.status === 'Completed';
+  
+  // Use darker shades for QR code to ensure good contrast and readability on white background.
+  const qrColor = isCompleted ? '#2E7D32' : '#B8860B'; // Dark Green if completed, Dark Gold otherwise
   
   const formatPrice = (val) => {
     const num = Number(val);
@@ -123,10 +126,10 @@ function OrderTrackingContent() {
 العميل: ${invoice?.customer_name || 'غير معروف'}
 --------------------
 المشتريات:
-${items.map(item => `${item.products?.name} x${item.quantity} = ${formatPrice(item.price * item.quantity)} ريال`).join('\n')}
+${items.map(item => `${item.products?.name} x${item.quantity} = ${formatPrice(item.price * item.quantity)}`).join('\n')}
 --------------------
 المجموع: ${formatPrice(order.total_price)} ريال
-${isPickup ? 'طريقة الاستلام: استلام من المحل' : 'طريقة الاستلام: توصيل'}
+${isPickup ? 'استلام من المحل' : 'توصيل'}
   `.trim();
 
   return (
@@ -137,17 +140,17 @@ ${isPickup ? 'طريقة الاستلام: استلام من المحل' : 'طر
         </Link>
         <h1 style={{ color: 'var(--primary-color)', margin: '10px 0 0 0', fontSize: '1.5rem' }}>{settings?.track_title || 'فاتورة وتتبع الطلب'}</h1>
         
-        <div style={{ padding: '10px', background: 'white', borderRadius: '8px', display: 'inline-block', boxShadow: `0 0 15px ${qrColor}80`, border: `2px solid ${qrColor}`, transition: 'all 0.5s ease' }}>
+        <div style={{ padding: '10px', background: 'white', borderRadius: '12px', display: 'inline-block', boxShadow: `0 0 15px ${isCompleted ? 'rgba(46,125,50,0.5)' : 'rgba(184,134,11,0.5)'}`, border: `2px solid ${qrColor}`, transition: 'all 0.5s ease' }}>
           <QRCodeSVG 
             value={qrContent} 
-            size={120} 
+            size={180} 
             bgColor={"#ffffff"}
-            fgColor={"#000000"}
-            level={"M"}
+            fgColor={qrColor}
+            level={"L"}
           />
         </div>
-        <p style={{ color: qrColor, margin: '0', fontWeight: 'bold', fontSize: '1.1rem', transition: 'color 0.5s ease' }}>
-          {isCompleted ? 'الطلب مكتمل ✅' : 'امسح الكود لعرض الفاتورة'}
+        <p style={{ color: isCompleted ? 'var(--success-color)' : 'var(--primary-color)', margin: '0', fontWeight: 'bold', fontSize: '1.1rem', transition: 'color 0.5s ease' }}>
+          {isCompleted ? 'الطلب جاهز ومكتمل التحضير ✅' : 'امسح الكود لعرض الفاتورة'}
         </p>
 
         {isPickup && (
