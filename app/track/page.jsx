@@ -24,8 +24,10 @@ function OrderTrackingContent() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      setQrContent(`${url.origin}/invoice?id=${id}`);
+      const origin = window.location.origin;
+      const pathname = window.location.pathname; // e.g. "/Cat-driver/track"
+      const newPathname = pathname.replace(/\/track\/?$/, '/invoice');
+      setQrContent(`${origin}${newPathname}?id=${id}`);
     }
   }, [id]);
 
