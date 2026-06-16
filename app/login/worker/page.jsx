@@ -7,7 +7,13 @@ import { supabase } from '../../../lib/supabase';
 export default function WorkerLogin() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('Driver');
+  const [toast, setToast] = useState(null);
   const router = useRouter();
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,9 +24,9 @@ export default function WorkerLogin() {
     });
     
     if (error) {
-      alert('كلمة المرور غير صحيحة أو الحساب غير موجود');
+      showToast('كلمة المرور غير صحيحة أو الحساب غير موجود', 'error');
     } else {
-      alert(`تم تسجيل الدخول بنجاح كـ ${role === 'Preparer' ? 'عامل تحضير' : 'سائق توصيل'}!`);
+      showToast(`تم تسجيل الدخول بنجاح كـ ${role === 'Preparer' ? 'عامل تحضير' : 'سائق توصيل'}!`, 'success');
       const targetPath = role === 'Preparer' ? '/preparer' : '/driver';
       // Attempt Next.js router first, fallback to direct location change if needed
       try {
@@ -37,6 +43,11 @@ export default function WorkerLogin() {
 
   return (
     <div className="page-wrapper animate-fade-in" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+      {toast && (
+        <div className={`toast-notification ${toast.type}`}>
+          {toast.message}
+        </div>
+      )}
       <div className="glass" style={{ padding: '40px', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: '400px' }}>
         <h2 style={{ color: 'var(--accent-color)', textAlign: 'center', marginBottom: '20px' }}>بوابة العمال</h2>
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
