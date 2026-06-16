@@ -31,20 +31,24 @@ export default function DriverDashboard() {
 
   const fetchOrders = async () => {
     // Fetch ready orders
-    const { data: readyOrders } = await supabase
+    const { data: readyOrders, error: readyErr } = await supabase
       .from('orders')
-      .select('*, users(name, phone, location_gps)')
+      .select('*, users!orders_user_id_fkey(name, phone, location_gps)')
       .eq('status', 'Processing')
       .eq('is_packed', true)
-      .order('updated_at', { ascending: false });
+      .order('created_at', { ascending: false });
+      
+    if (readyErr) console.error('Error fetching ready orders:', readyErr);
       
     // Fetch my active deliveries
-    const { data: activeDeliveries } = await supabase
+    const { data: activeDeliveries, error: activeErr } = await supabase
       .from('orders')
-      .select('*, users(name, phone, location_gps)')
+      .select('*, users!orders_user_id_fkey(name, phone, location_gps)')
       .eq('status', 'OnTheWay')
       .eq('driver_id', DRIVER_ID)
-      .order('updated_at', { ascending: false });
+      .order('created_at', { ascending: false });
+
+    if (activeErr) console.error('Error fetching active deliveries:', activeErr);
 
     if (readyOrders) setOrders(readyOrders);
     if (activeDeliveries) setMyDeliveries(activeDeliveries);

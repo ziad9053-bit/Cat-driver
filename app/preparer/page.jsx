@@ -31,11 +31,12 @@ export default function PreparerDashboard() {
   const fetchOrders = async () => {
     const { data, error } = await supabase
       .from('orders')
-      .select('*, users(name, phone)')
+      .select('*, users!orders_user_id_fkey(name, phone)')
       .in('status', ['Pending', 'Processing'])
       .eq('is_packed', false)
       .order('created_at', { ascending: true });
       
+    if (error) console.error('Error fetching orders:', error);
     if (data) setOrders(data);
   };
 
