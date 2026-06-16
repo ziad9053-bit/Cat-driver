@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingCart, ShieldCheck, Truck, User } from 'lucide-react';
+import { ShoppingCart, Truck } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useSettings } from '../../context/SettingsContext';
 
@@ -19,12 +19,9 @@ export default function Navbar() {
 
   return (
     <nav className="navbar glass">
-      <div className="navbar-container">
-        {/* Admin Login (Top Left) */}
-        <Link href="/login/admin" className="auth-link admin-link">
-          <ShieldCheck size={20} />
-          <span className="hide-mobile">دخول الإدارة</span>
-        </Link>
+      <div className="navbar-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Spacer for layout balance */}
+        <div style={{ width: '60px' }}></div>
 
         {/* Logo (Center) */}
         <Link href="/" className="logo" style={{justifyContent: 'center', flex: 1, textAlign: 'center'}}>
@@ -32,13 +29,8 @@ export default function Navbar() {
           <span style={{ color: 'var(--primary-color)' }}>{settings?.store_name || 'كات درايفر'}</span>
         </Link>
 
-        {/* Worker Login & Cart (Top Right in RTL = Left visually) */}
-        <div className="nav-links">
-          <Link href="/login/worker" className="auth-link worker-link">
-            <User size={20} />
-            <span className="hide-mobile">دخول العمال</span>
-          </Link>
-          
+        {/* Cart */}
+        <div className="nav-links" style={{ width: '60px', justifyContent: 'flex-end' }}>
           <Link href="/cart" className="cart-link">
             <ShoppingCart size={24} />
             {cartItemsCount > 0 && (
