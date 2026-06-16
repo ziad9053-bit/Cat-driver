@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
-import { Plus, Minus, ShoppingBag, Carrot, Wheat, Apple, Leaf } from 'lucide-react';
+import { Plus, Minus, ShoppingBag, Carrot, Wheat, Apple, Leaf, Home } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import './catalog.css';
 
