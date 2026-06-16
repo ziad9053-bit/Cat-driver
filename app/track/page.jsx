@@ -136,30 +136,46 @@ function OrderTrackingContent() {
         </Link>
         <h1 style={{ color: 'var(--primary-color)', margin: '10px 0 0 0', fontSize: '1.5rem' }}>{settings?.track_title || 'فاتورة وتتبع الطلب'}</h1>
         
+        {/* SVG Definition for Metallic Gold Gradient */}
+        <svg width="0" height="0" style={{ position: 'absolute' }}>
+          <defs>
+            <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#AA7C11" />
+              <stop offset="25%" stopColor="#D4AF37" />
+              <stop offset="50%" stopColor="#FDF0A6" />
+              <stop offset="75%" stopColor="#D4AF37" />
+              <stop offset="100%" stopColor="#AA7C11" />
+            </linearGradient>
+          </defs>
+        </svg>
+
         <div style={{ 
-          padding: '14px', 
-          background: isCompleted ? '#2E7D32' : 'linear-gradient(135deg, #AA7C11 0%, #D4AF37 25%, #FDF0A6 50%, #D4AF37 75%, #AA7C11 100%)', 
-          borderRadius: '16px', 
+          background: 'white', /* The white gap */
+          padding: '4px', 
+          borderRadius: '20px', 
           display: 'inline-block', 
-          boxShadow: `0 8px 25px ${isCompleted ? 'rgba(46,125,50,0.5)' : 'rgba(212, 175, 55, 0.5)'}`, 
-          border: `2px solid ${isCompleted ? '#1b5e20' : '#FDF0A6'}`, 
+          boxShadow: `0 8px 30px ${isCompleted ? 'rgba(46,125,50,0.4)' : 'rgba(212, 175, 55, 0.4)'}`,
           transition: 'all 0.5s ease' 
         }}>
-          {qrContent ? (
-            <div style={{ background: 'white', padding: '10px', borderRadius: '8px' }}>
+          <div style={{ 
+            background: '#0a0a0a', /* The black frame */
+            padding: '16px', 
+            borderRadius: '16px' 
+          }}>
+            {qrContent ? (
               <QRCodeSVG 
                 value={qrContent} 
                 size={180} 
-                bgColor={"#ffffff"}
-                fgColor={isCompleted ? '#2E7D32' : '#8c6308'}
+                bgColor={"transparent"}
+                fgColor={isCompleted ? '#2E7D32' : 'url(#gold-gradient)'}
                 level={"H"}
               />
-            </div>
-          ) : (
-            <div style={{ width: 180, height: 180, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: '#ccc' }}>Loading QR...</span>
-            </div>
-          )}
+            ) : (
+              <div style={{ width: 180, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ color: '#555' }}>Loading QR...</span>
+              </div>
+            )}
+          </div>
         </div>
         <p style={{ color: isCompleted ? 'var(--success-color)' : 'var(--primary-color)', margin: '0', fontWeight: 'bold', fontSize: '1.1rem', transition: 'color 0.5s ease' }}>
           {isCompleted ? 'الطلب جاهز ومكتمل التحضير ✅' : 'امسح الكود لعرض الفاتورة'}
