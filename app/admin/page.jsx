@@ -117,7 +117,6 @@ export default function AdminDashboard() {
   };
 
   const resetForm = () => {
-    setShowAddForm(false);
     setEditingProductId(null);
     setFormData({ name: '', price: '', unit_type: 'Kilo', category_id: '', is_offer: false, offer_label: '', offer_color: '#E65100' });
     setImageFile(null);
@@ -383,7 +382,7 @@ export default function AdminDashboard() {
                         <input type="file" accept="image/*" capture="environment" hidden onChange={handleImageCapture} />
                       </label>
                       <button type="button" className="btn-gallery" onClick={() => { setShowGallery(true); fetchGalleryImages(); }}>
-                        <Image size={18} /> اختيار من المخزن
+                        <ImageIcon size={18} /> اختيار من المخزن
                       </button>
                     </div>
                   </div>
