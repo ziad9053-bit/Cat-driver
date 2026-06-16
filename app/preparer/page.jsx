@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Package, CheckCircle, Clock } from 'lucide-react';
 import './preparer.css';
@@ -13,6 +13,7 @@ export default function PreparerDashboard() {
   const [loadingItems, setLoadingItems] = useState(false);
   const [unitTranslations, setUnitTranslations] = useState({});
   const [mounted, setMounted] = useState(false);
+  const detailsRef = useRef(null);
 
   // Derive selectedOrder from orders list so it's always in sync
   const selectedOrder = orders.find(o => o.id === selectedOrderId) || null;
@@ -111,6 +112,12 @@ export default function PreparerDashboard() {
   const handleSelectOrder = (order) => {
     setSelectedOrderId(order.id);
     loadOrderItems(order.id);
+    // Scroll to order details so the worker sees it immediately
+    setTimeout(() => {
+      if (detailsRef.current) {
+        detailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   const handleStartPacking = async (orderId) => {
@@ -248,7 +255,7 @@ export default function PreparerDashboard() {
           </div>
         </div>
 
-        <div className="order-details glass">
+        <div className="order-details glass" ref={detailsRef}>
           {selectedOrder ? (
             <>
               <h2>تفاصيل الطلب #{selectedOrder.id.split('-')[0].toUpperCase()}</h2>
