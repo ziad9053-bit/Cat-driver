@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 
 import './admin.css';
 import { useState, useEffect } from 'react';
@@ -268,9 +269,9 @@ export default function AdminDashboard() {
       <header className="admin-header" style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '30px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ margin: 0 }}>لوحة تحكم المدير</h1>
-          <button onClick={() => window.location.href = '/'} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: 'var(--border-radius-md)', background: 'var(--primary-color)', border: 'none', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: 'var(--border-radius-md)', background: 'var(--primary-color)', textDecoration: 'none', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>
             الرجوع للمتجر 🏠
-          </button>
+          </Link>
         </div>
         <p style={{ color: 'var(--text-secondary)', margin: 0 }}>أهلاً بك في لوحة التحكم، يمكنك إدارة إعدادات المتجر والمنتجات من هنا.</p>
       </header>
