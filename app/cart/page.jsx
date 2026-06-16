@@ -78,6 +78,11 @@ export default function CartCheckout() {
       showToast('يرجى إدخال رقم الجوال.', 'error');
       return;
     }
+    const phoneRegex = /^05\d{8}$/;
+    if (!phoneRegex.test(customerPhone.trim())) {
+      showToast('يرجى إدخال رقم جوال صحيح يبدأ بـ 05 ومكون من 10 أرقام.', 'error');
+      return;
+    }
     if (!gpsLocation) {
       showToast('يرجى تحديد موقعك على الخريطة أولاً (اضغط على زر تحديد موقعي).', 'error');
       return;
