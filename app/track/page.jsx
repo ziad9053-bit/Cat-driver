@@ -33,6 +33,7 @@ function OrderTrackingContent() {
 
   useEffect(() => {
     setMounted(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     const fetchOrderData = async () => {
       // 1. Fetch Order details
       const { data: orderData } = await supabase

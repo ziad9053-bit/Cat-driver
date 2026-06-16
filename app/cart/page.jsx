@@ -29,6 +29,7 @@ export default function CartCheckout() {
 
   useEffect(() => {
     setMounted(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
   const showToast = (message, type = 'success') => {
