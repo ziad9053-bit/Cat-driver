@@ -20,6 +20,13 @@ function OrderTrackingContent() {
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [qrContent, setQrContent] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setQrContent(window.location.href);
+    }
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -115,14 +122,7 @@ function OrderTrackingContent() {
   
   // Use darker shades for QR code to ensure good contrast and readability on white background.
   const qrColor = isCompleted ? '#2E7D32' : '#B8860B'; // Dark Green if completed, Dark Gold otherwise
-  
-  const [qrContent, setQrContent] = useState('');
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setQrContent(window.location.href);
-    }
-  }, []);
 
   return (
     <div className="page-wrapper animate-fade-in track-page" style={{ maxWidth: '600px', margin: '0 auto' }}>
