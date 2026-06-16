@@ -136,15 +136,25 @@ function OrderTrackingContent() {
         </Link>
         <h1 style={{ color: 'var(--primary-color)', margin: '10px 0 0 0', fontSize: '1.5rem' }}>{settings?.track_title || 'فاتورة وتتبع الطلب'}</h1>
         
-        <div style={{ padding: '10px', background: 'white', borderRadius: '12px', display: 'inline-block', boxShadow: `0 0 15px ${isCompleted ? 'rgba(46,125,50,0.5)' : 'rgba(184,134,11,0.5)'}`, border: `2px solid ${qrColor}`, transition: 'all 0.5s ease' }}>
+        <div style={{ 
+          padding: '14px', 
+          background: isCompleted ? '#2E7D32' : 'linear-gradient(135deg, #AA7C11 0%, #D4AF37 25%, #FDF0A6 50%, #D4AF37 75%, #AA7C11 100%)', 
+          borderRadius: '16px', 
+          display: 'inline-block', 
+          boxShadow: `0 8px 25px ${isCompleted ? 'rgba(46,125,50,0.5)' : 'rgba(212, 175, 55, 0.5)'}`, 
+          border: `2px solid ${isCompleted ? '#1b5e20' : '#FDF0A6'}`, 
+          transition: 'all 0.5s ease' 
+        }}>
           {qrContent ? (
-            <QRCodeSVG 
-              value={qrContent} 
-              size={180} 
-              bgColor={"#ffffff"}
-              fgColor={qrColor}
-              level={"L"}
-            />
+            <div style={{ background: 'white', padding: '10px', borderRadius: '8px' }}>
+              <QRCodeSVG 
+                value={qrContent} 
+                size={180} 
+                bgColor={"#ffffff"}
+                fgColor={isCompleted ? '#2E7D32' : '#8c6308'}
+                level={"H"}
+              />
+            </div>
           ) : (
             <div style={{ width: 180, height: 180, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ color: '#ccc' }}>Loading QR...</span>
