@@ -24,7 +24,14 @@ export default function AdminLogin() {
       showToast('كلمة المرور غير صحيحة أو الحساب غير موجود', 'error');
     } else {
       showToast('تم تسجيل الدخول بنجاح كمدير!', 'success');
-      router.push('/admin');
+      try {
+        router.push('/admin');
+        setTimeout(() => {
+          window.location.href = '/Cat-driver/admin/';
+        }, 500);
+      } catch (e) {
+        window.location.href = '/Cat-driver/admin/';
+      }
     }
   };
 

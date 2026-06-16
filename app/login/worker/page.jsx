@@ -33,10 +33,10 @@ export default function WorkerLogin() {
         router.push(targetPath);
         // Fallback timeout in case router.push doesn't navigate
         setTimeout(() => {
-          window.location.href = `/Cat-driver${targetPath}`;
+          window.location.href = `/Cat-driver${targetPath}/`;
         }, 500);
       } catch (e) {
-        window.location.href = `/Cat-driver${targetPath}`;
+        window.location.href = `/Cat-driver${targetPath}/`;
       }
     }
   };
