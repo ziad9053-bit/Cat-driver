@@ -250,7 +250,7 @@ export default function PreparerDashboard() {
                   <button className="btn-primary full-width" onClick={() => handleStartPacking(selectedOrder.id)}>
                     البدء بالتحضير
                   </button>
-                ) : selectedOrder.status === 'Processing' && !selectedOrder.is_packed ? (
+                ) : selectedOrder.status === 'Processing' ? (
                   <button className="btn-success full-width" onClick={() => handleFinishPacking(selectedOrder.id)}>
                     <CheckCircle size={20} /> تم التجهيز، بانتظار السائق
                   </button>
