@@ -13,6 +13,7 @@ export default function PreparerDashboard() {
   const [loadingItems, setLoadingItems] = useState(false);
   const [unitTranslations, setUnitTranslations] = useState({});
   const [mounted, setMounted] = useState(false);
+  const [toast, setToast] = useState(null);
 
 
   // Derive selectedOrder from orders list so it's always in sync
@@ -114,6 +115,11 @@ export default function PreparerDashboard() {
     loadOrderItems(order.id);
   };
 
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const handleStartPacking = async (orderId) => {
     // Optimistic update: immediately update local state
     setOrders(prev => prev.map(o =>
@@ -126,8 +132,10 @@ export default function PreparerDashboard() {
       .eq('id', orderId);
 
     if (error) {
-      alert('خطأ: ' + error.message);
+      showToast('خطأ: ' + error.message, 'error');
       fetchOrders(); // Revert on error
+    } else {
+      showToast('تم استلام الطلب وبدء التحضير', 'success');
     }
   };
 
@@ -138,9 +146,9 @@ export default function PreparerDashboard() {
       .eq('id', orderId);
 
     if (error) {
-      alert('خطأ: ' + error.message);
+      showToast('خطأ: ' + error.message, 'error');
     } else {
-      alert('تم إرسال إشعار للسائقين!');
+      showToast('تم التجهيز وإرسال إشعار للسائقين!', 'success');
       setSelectedOrderId(null);
       fetchOrders();
     }
@@ -184,6 +192,12 @@ export default function PreparerDashboard() {
 
   return (
     <div className="page-wrapper preparer-dashboard">
+      {toast && (
+        <div className={`toast-notification ${toast.type}`}>
+          {toast.message}
+        </div>
+      )}
+
       <header className="page-header" style={{ textAlign: 'center', marginBottom: '30px' }}>
         <h1 style={{ color: 'var(--primary-color)' }}>شاشة عامل التحضير 📦</h1>
         <p style={{ color: 'var(--text-secondary)' }}>الطلبات الواردة بانتظار التجهيز والتغليف.</p>
