@@ -242,15 +242,11 @@ export default function PreparerDashboard() {
               )}
 
               <div className="order-actions">
-                {selectedOrder.is_packed === true || ['Delivered', 'Cancelled', 'OnTheWay'].includes(selectedOrder.status) ? (
-                  <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--success-color)', borderRadius: 'var(--border-radius-md)', fontWeight: 'bold' }}>
-                    {selectedOrder.status === 'Delivered' ? '✓ تم توصيل هذا الطلب للعميل' : '✓ تم تغليف الطلب وبانتظار استلام السائق'}
-                  </div>
-                ) : selectedOrder.status === 'Pending' ? (
+                {selectedOrder.status === 'Pending' ? (
                   <button className="btn-primary full-width" onClick={() => handleStartPacking(selectedOrder.id)}>
                     البدء بالتحضير
                   </button>
-                ) : selectedOrder.status === 'Processing' ? (
+                ) : selectedOrder.status === 'Processing' && !selectedOrder.is_packed ? (
                   <button className="btn-success full-width" onClick={() => handleFinishPacking(selectedOrder.id)}>
                     <CheckCircle size={20} /> تم التجهيز، بانتظار السائق
                   </button>
