@@ -8,14 +8,6 @@ export const metadata = {
   description: 'خدمة التوصيل الفاخرة لاحتياجاتك اليومية.',
 };
 
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: '#030806',
-};
-
 export default function RootLayout({ children }) {
   return (
     <html lang="ar" dir="rtl">
