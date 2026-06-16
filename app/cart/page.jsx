@@ -40,6 +40,7 @@ export default function CartCheckout() {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('05');
   const [gpsLocation, setGpsLocation] = useState(null);
+  const [deliveryType, setDeliveryType] = useState('Delivery');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handlePhoneChange = (e) => {
@@ -53,7 +54,7 @@ export default function CartCheckout() {
   };
 
   const safeSubtotal = typeof subtotal === 'number' && !isNaN(subtotal) ? subtotal : 0;
-  const deliveryFee = safeSubtotal > 0 ? 15.00 : 0;
+  const deliveryFee = (safeSubtotal > 0 && deliveryType === 'Delivery') ? 15.00 : 0;
   const finalTotal = safeSubtotal + deliveryFee;
 
   const formatPrice = (val) => {
@@ -95,7 +96,7 @@ export default function CartCheckout() {
       showToast('يرجى إدخال رقم جوال صحيح يبدأ بـ 05 ومكون من 10 أرقام.', 'error');
       return;
     }
-    if (!gpsLocation) {
+    if (deliveryType === 'Delivery' && !gpsLocation) {
       showToast('يرجى تحديد موقعك على الخريطة أولاً (اضغط على زر تحديد موقعي).', 'error');
       return;
     }
@@ -127,7 +128,7 @@ export default function CartCheckout() {
       // 2. Create Order
       const { data: order, error: orderErr } = await supabase
         .from('orders')
-        .insert({ user_id: userId, total_price: finalTotal, status: 'Pending' })
+        .insert({ user_id: userId, total_price: finalTotal, status: 'Pending', delivery_type: deliveryType })
         .select()
         .single();
         
@@ -287,10 +288,47 @@ export default function CartCheckout() {
                   required
                 />
               </div>
-              <button className={`pin-btn ${gpsLocation ? 'success' : ''}`} onClick={handleDropPin}>
+              <button className={`pin-btn ${gpsLocation && gpsLocation !== 'Pickup' ? 'success' : ''}`} onClick={handleDropPin} style={{ display: deliveryType === 'Delivery' ? 'flex' : 'none' }}>
                 <MapPin size={20} />
-                {gpsLocation ? 'تم التقاط الموقع بنجاح ✓' : 'تحديد موقعي 📍'}
+                {gpsLocation && gpsLocation !== 'Pickup' ? 'تم التقاط الموقع بنجاح ✓' : 'تحديد موقعي 📍'}
               </button>
+
+              <div className="input-group" style={{ marginTop: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontWeight: '600' }}>
+                  طريقة الاستلام
+                </label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setDeliveryType('Delivery');
+                      if (gpsLocation === 'Pickup') setGpsLocation(null);
+                    }}
+                    style={{
+                      flex: 1, padding: '12px', borderRadius: 'var(--border-radius-md)',
+                      background: deliveryType === 'Delivery' ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)',
+                      color: deliveryType === 'Delivery' ? '#000' : 'var(--text-primary)',
+                      border: deliveryType === 'Delivery' ? 'none' : '1px solid rgba(255,255,255,0.1)', fontWeight: 'bold',
+                      transition: 'all 0.3s', cursor: 'pointer'
+                    }}
+                  >
+                    توصيل 🛵
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => { setDeliveryType('Pickup'); setGpsLocation('Pickup'); }}
+                    style={{
+                      flex: 1, padding: '12px', borderRadius: 'var(--border-radius-md)',
+                      background: deliveryType === 'Pickup' ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)',
+                      color: deliveryType === 'Pickup' ? '#000' : 'var(--text-primary)',
+                      border: deliveryType === 'Pickup' ? 'none' : '1px solid rgba(255,255,255,0.1)', fontWeight: 'bold',
+                      transition: 'all 0.3s', cursor: 'pointer'
+                    }}
+                  >
+                    استلام من المحل 🏪
+                  </button>
+                </div>
+              </div>
             </section>
 
             <section className="payment-section glass animate-slide-up" style={{ animationDelay: '0.3s' }}>

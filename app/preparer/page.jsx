@@ -148,7 +148,12 @@ export default function PreparerDashboard() {
     if (error) {
       showToast('خطأ: ' + error.message, 'error');
     } else {
-      showToast('تم التجهيز وإرسال إشعار للسائقين!', 'success');
+      const orderType = orders.find(o => o.id === orderId)?.delivery_type;
+      if (orderType === 'Pickup') {
+        showToast('تم التجهيز، الطلب بانتظار استلام العميل!', 'success');
+      } else {
+        showToast('تم التجهيز وإرسال إشعار للسائقين!', 'success');
+      }
       setSelectedOrderId(null);
       fetchOrders();
     }
@@ -224,9 +229,16 @@ export default function PreparerDashboard() {
                       <span className="time-elapsed"><Clock size={14} /> {new Date(order.created_at).toLocaleTimeString('ar-SA')}</span>
                     </div>
                     <p>العميل: {order.users?.name}</p>
-                    <span className={`status-badge ${order.status}`}>
-                      {order.status === 'Pending' ? 'جديد' : 'جاري التحضير'}
-                    </span>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '5px' }}>
+                      <span className={`status-badge ${order.status}`}>
+                        {order.status === 'Pending' ? 'جديد' : 'جاري التحضير'}
+                      </span>
+                      {order.delivery_type === 'Pickup' && (
+                        <span className="status-badge" style={{ backgroundColor: '#ff9800', color: '#fff' }}>
+                          استلام من المحل 🏪
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -253,9 +265,16 @@ export default function PreparerDashboard() {
                       <span className="time-elapsed"><Clock size={14} /> {new Date(order.created_at).toLocaleDateString('ar-SA')}</span>
                     </div>
                     <p>العميل: {order.users?.name}</p>
-                    <span className="status-badge" style={{ backgroundColor: order.status === 'Delivered' ? 'var(--success-color)' : 'var(--primary-color)', color: 'white' }}>
-                      {order.status === 'Delivered' ? 'تم التوصيل' : 'جاهز للتوصيل'}
-                    </span>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '5px' }}>
+                      <span className="status-badge" style={{ backgroundColor: order.status === 'Delivered' || order.status === 'Completed' ? 'var(--success-color)' : 'var(--primary-color)', color: 'white' }}>
+                        {order.delivery_type === 'Pickup' ? 'جاهز للاستلام' : (order.status === 'Delivered' ? 'تم التوصيل' : 'جاهز للتوصيل')}
+                      </span>
+                      {order.delivery_type === 'Pickup' && (
+                        <span className="status-badge" style={{ backgroundColor: '#ff9800', color: '#fff' }}>
+                          استلام من المحل 🏪
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -266,7 +285,18 @@ export default function PreparerDashboard() {
         <div className="order-details glass">
           {selectedOrder ? (
             <>
-              <h2>تفاصيل الطلب #{selectedOrder.id.split('-')[0].toUpperCase()}</h2>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
+                <h2 style={{ margin: 0 }}>تفاصيل الطلب #{selectedOrder.id.split('-')[0].toUpperCase()}</h2>
+                {selectedOrder.delivery_type === 'Pickup' && (
+                  <span style={{ 
+                    backgroundColor: '#ff9800', color: '#fff', padding: '8px 16px', 
+                    borderRadius: 'var(--border-radius-sm)', fontWeight: 'bold', fontSize: '1.1rem',
+                    boxShadow: '0 0 10px rgba(255, 152, 0, 0.4)'
+                  }}>
+                    استلام من المحل 🏪
+                  </span>
+                )}
+              </div>
 
               {loadingItems ? (
                 <p>جاري تحميل الأصناف...</p>

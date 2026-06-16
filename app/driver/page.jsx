@@ -73,7 +73,12 @@ export default function DriverDashboard() {
     const channel = supabase
       .channel('driver-orders')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-        if (payload.eventType === 'UPDATE' && payload.new.is_packed && payload.new.status === 'Processing') {
+        if (
+          payload.eventType === 'UPDATE' && 
+          payload.new.is_packed && 
+          payload.new.status === 'Processing' &&
+          (!payload.new.delivery_type || payload.new.delivery_type === 'Delivery')
+        ) {
           playNotification();
         }
         fetchOrders(driverId);
@@ -86,12 +91,13 @@ export default function DriverDashboard() {
   }, [driverId]);
 
   const fetchOrders = async (currentDriverId) => {
-    // Fetch ready orders
+    // Fetch ready orders (Only for Delivery, exclude Pickup)
     const { data: readyOrders, error: readyErr } = await supabase
       .from('orders')
       .select('*, users!orders_user_id_fkey(name, phone, location_gps)')
       .eq('status', 'Processing')
       .eq('is_packed', true)
+      .or('delivery_type.is.null,delivery_type.eq.Delivery') // Compatibility for old orders
       .order('created_at', { ascending: false });
       
     if (readyErr) console.error('Error fetching ready orders:', readyErr);
