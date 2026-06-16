@@ -9,14 +9,16 @@ import SettingsTab from './SettingsTab';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [activeAccordion, setActiveAccordion] = useState('products');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingProductId, setEditingProductId] = useState(null);
 
+  const toggleAccordion = (section) => {
+    setActiveAccordion(prev => prev === section ? null : section);
+  };
+
   const [categories, setCategories] = useState([]);
   const [units, setUnits] = useState([]);
-  const [showUnitsModal, setShowUnitsModal] = useState(false);
-  const [showSettingsTab, setShowSettingsTab] = useState(false);
   const [newUnitNameAr, setNewUnitNameAr] = useState('');
   const [isSavingUnit, setIsSavingUnit] = useState(false);
 
@@ -128,13 +130,13 @@ export default function AdminDashboard() {
       name: product.name,
       price: product.current_price,
       unit_type: product.unit_type,
-      category_id: product.category_id,
-      is_offer: product.is_offer,
+      category_id: product.category_id || '',
+      is_offer: product.is_offer || false,
       offer_label: product.offer_label || '',
       offer_color: product.offer_color || '#E65100'
     });
-    setImagePreview(product.image_url || '');
-    setShowAddForm(true);
+    setImagePreview(product.image_url);
+    setActiveAccordion('add');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -246,6 +248,7 @@ export default function AdminDashboard() {
       alert(editingProductId ? 'تم تحديث المنتج بنجاح!' : 'تم إضافة المنتج بنجاح!');
       resetForm();
       fetchData();
+      setActiveAccordion('products');
     } catch (err) {
       alert('فشل في حفظ المنتج: ' + err.message);
     } finally {
@@ -255,151 +258,268 @@ export default function AdminDashboard() {
 
   return (
     <div className="page-wrapper admin-dashboard">
-      <header className="admin-header" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-        <h1 style={{ flexGrow: 1 }}>لوحة تحكم المدير</h1>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => setShowSettingsTab(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: 'var(--border-radius-md)', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer' }}>
-            <Settings size={18} /> إعدادات التطبيق
-          </button>
-          <button onClick={() => setShowUnitsModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: 'var(--border-radius-md)', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer' }}>
-            ⚖️ إدارة وحدات الوزن
-          </button>
-          <button className="btn-primary" onClick={() => setShowAddForm(!showAddForm)}>
-            <Plus size={20} /> إضافة صنف جديد
+      <header className="admin-header" style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '30px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ margin: 0 }}>لوحة تحكم المدير</h1>
+          <button onClick={() => window.location.href = '/'} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: 'var(--border-radius-md)', background: 'var(--primary-color)', border: 'none', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>
+            الرجوع للمتجر 🏠
           </button>
         </div>
+        <p style={{ color: 'var(--text-secondary)', margin: 0 }}>أهلاً بك في لوحة التحكم، يمكنك إدارة إعدادات المتجر والمنتجات من هنا.</p>
       </header>
 
-      {showSettingsTab && <SettingsTab onClose={() => setShowSettingsTab(false)} />}
-
-      {showAddForm && !showSettingsTab && (
-        <div className="glass admin-form-card animate-slide-up">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ marginBottom: 0 }}>{editingProductId ? 'تعديل صنف' : 'إضافة صنف جديد'}</h2>
-            <button onClick={resetForm} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-              <X size={24} />
-            </button>
+      {/* Accordions Container */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        
+        {/* Settings Accordion */}
+        <div className="glass accordion-card" style={{ borderRadius: 'var(--border-radius-lg)', overflow: 'hidden' }}>
+          <div 
+            onClick={() => toggleAccordion('settings')}
+            style={{ padding: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: activeAccordion === 'settings' ? 'rgba(255,255,255,0.05)' : 'transparent', transition: 'background 0.3s' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>
+              <Settings size={24} />
+              إعدادات التطبيق
+            </div>
+            <div>{activeAccordion === 'settings' ? '▲' : '▼'}</div>
           </div>
-          <form onSubmit={handleAddProduct} className="admin-form">
-            
-            <div className="form-group">
-              <label>صورة المنتج</label>
-              <div className="image-upload-area">
-                {imagePreview ? (
-                  <img src={imagePreview} alt="Preview" className="image-preview" />
-                ) : (
-                  <div className="image-placeholder"><Package size={48} /></div>
-                )}
-                
-                <div className="upload-buttons">
-                  <label className="btn-upload">
-                    <ImageIcon size={18} /> رفع صورة
-                    <input type="file" accept="image/*" hidden onChange={handleImageCapture} />
-                  </label>
-                  <label className="btn-capture">
-                    <Camera size={18} /> التقاط بالكاميرا
-                    <input type="file" accept="image/*" capture="environment" hidden onChange={handleImageCapture} />
-                  </label>
-                  <button className="btn-gallery" onClick={handleOpenGallery}>
-                    <Grid size={18} /> مخزن الصور
-                  </button>
-                </div>
-              </div>
+          {activeAccordion === 'settings' && (
+            <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <SettingsTab />
             </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>اسم الصنف</label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required placeholder="مثال: طماطم محمي" />
-              </div>
-              
-              <div className="form-group">
-                <label>القسم</label>
-                <select value={formData.category_id} onChange={(e) => setFormData({...formData, category_id: e.target.value})} required>
-                  <option value="">اختر القسم...</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>السعر (ريال)</label>
-                <input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
-              </div>
-              
-              <div className="form-group">
-                <label>وحدة الوزن</label>
-                <select value={formData.unit_type} onChange={(e) => setFormData({...formData, unit_type: e.target.value})}>
-                  {units.map(u => (
-                    <option key={u.id} value={u.code}>{u.name_ar}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="form-group checkbox-group">
-              <label>
-                <input type="checkbox" checked={formData.is_offer} onChange={(e) => setFormData({...formData, is_offer: e.target.checked})} />
-                تفعيل كعرض خاص؟
-              </label>
-            </div>
-
-            {formData.is_offer && (
-              <div className="form-row animate-fade-in">
-                <div className="form-group">
-                  <label>نص العرض</label>
-                  <input type="text" value={formData.offer_label} onChange={(e) => setFormData({...formData, offer_label: e.target.value})} placeholder="مثال: خصم 20%" />
-                </div>
-                <div className="form-group">
-                  <label>لون ملصق العرض</label>
-                  <input type="color" value={formData.offer_color} onChange={(e) => setFormData({...formData, offer_color: e.target.value})} />
-                </div>
-              </div>
-            )}
-
-            <button type="submit" className="btn-submit" disabled={isSubmitting}>
-              {isSubmitting ? 'جاري الحفظ والرفع...' : (editingProductId ? 'حفظ التعديلات' : 'حفظ وإضافة للمتجر')}
-            </button>
-          </form>
+          )}
         </div>
-      )}
 
-      {/* Admin Products List */}
-      <div className="admin-products-section" style={{ marginTop: '40px' }}>
-        <h2 style={{ marginBottom: '20px', color: 'var(--primary-color)' }}>المنتجات الحالية ({products.length})</h2>
-        <div className="admin-products-grid">
-          {products.map(product => {
-            const unitName = units.find(u => u.code === product.unit_type)?.name_ar || product.unit_type;
-            const categoryName = categories.find(c => c.id == product.category_id)?.name || 'غير مصنف';
+        {/* Units Accordion */}
+        <div className="glass accordion-card" style={{ borderRadius: 'var(--border-radius-lg)', overflow: 'hidden' }}>
+          <div 
+            onClick={() => toggleAccordion('units')}
+            style={{ padding: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: activeAccordion === 'units' ? 'rgba(255,255,255,0.05)' : 'transparent', transition: 'background 0.3s' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>
+              <span style={{ fontSize: '24px' }}>⚖️</span>
+              إدارة وحدات الوزن
+            </div>
+            <div>{activeAccordion === 'units' ? '▲' : '▼'}</div>
+          </div>
+          {activeAccordion === 'units' && (
+            <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <form onSubmit={handleAddUnit} style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
+                <input 
+                  type="text" 
+                  placeholder="اسم الوحدة بالكامل (مثال: كيس كبير)" 
+                  value={newUnitNameAr} 
+                  onChange={(e) => setNewUnitNameAr(e.target.value)} 
+                  required 
+                  style={{ flex: 1, padding: '12px', borderRadius: 'var(--border-radius-md)', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)', color: 'white' }}
+                />
+                <button 
+                  type="submit" 
+                  disabled={isSavingUnit}
+                  className="btn-primary"
+                  style={{ padding: '12px 20px', whiteSpace: 'nowrap' }}
+                >
+                  {isSavingUnit ? 'جاري الحفظ...' : 'إضافة وحدة'}
+                </button>
+              </form>
 
-            return (
-              <div key={product.id} className="admin-product-card glass">
-                {product.image_url && (
-                  <div className="admin-product-img">
-                    <img src={product.image_url} alt={product.name} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <h3 style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>الوحدات المتوفرة ({units.length})</h3>
+                {units.length === 0 ? (
+                  <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '15px' }}>لا توجد وحدات مضافة حالياً.</p>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
+                    {units.map(u => (
+                      <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', borderRadius: 'var(--border-radius-md)', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <span style={{ fontWeight: '500' }}>{u.name_ar}</span>
+                        <button 
+                          onClick={(e) => { e.preventDefault(); handleDeleteUnit(u.id, u.code); }} 
+                          style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '5px' }}
+                          title="حذف الوحدة"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
-                <div className="admin-product-info">
-                  <h3>{product.name}</h3>
-                  <p className="admin-product-price">{product.current_price} ريال / {unitName}</p>
-                  <span className="admin-product-category">{categoryName}</span>
-                </div>
-                <div className="admin-product-actions">
-                  <button onClick={() => handleEditClick(product)} className="btn-edit" title="تعديل">
-                    <Edit size={18} />
-                  </button>
-                  <button onClick={() => handleDeleteProduct(product.id)} className="btn-delete" title="حذف">
-                    <Trash2 size={18} />
-                  </button>
-                </div>
               </div>
-            );
-          })}
+            </div>
+          )}
+        </div>
+
+        {/* Add Product Accordion */}
+        <div className="glass accordion-card" style={{ borderRadius: 'var(--border-radius-lg)', overflow: 'hidden' }}>
+          <div 
+            onClick={() => toggleAccordion('add')}
+            style={{ padding: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: activeAccordion === 'add' ? 'rgba(255,255,255,0.05)' : 'transparent', transition: 'background 0.3s' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>
+              <Plus size={24} />
+              {editingProductId ? 'تعديل صنف' : 'إضافة صنف جديد'}
+            </div>
+            <div>{activeAccordion === 'add' ? '▲' : '▼'}</div>
+          </div>
+          {activeAccordion === 'add' && (
+            <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <form onSubmit={handleAddProduct} className="admin-form">
+                
+                <div className="form-group">
+                  <label>صورة المنتج</label>
+                  <div className="image-upload-area">
+                    {imagePreview ? (
+                      <img src={imagePreview} alt="Preview" className="image-preview" />
+                    ) : (
+                      <div className="image-placeholder"><Package size={48} /></div>
+                    )}
+                    
+                    <div className="upload-buttons">
+                      <label className="btn-upload">
+                        <ImageIcon size={18} /> رفع صورة
+                        <input type="file" accept="image/*" hidden onChange={handleImageCapture} />
+                      </label>
+                      <label className="btn-capture">
+                        <Camera size={18} /> التقاط بالكاميرا
+                        <input type="file" accept="image/*" capture="environment" hidden onChange={handleImageCapture} />
+                      </label>
+                      <button type="button" className="btn-gallery" onClick={() => { setShowGallery(true); fetchGalleryImages(); }}>
+                        <Image size={18} /> اختيار من المخزن
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group" style={{ flex: 2 }}>
+                    <label>اسم المنتج <span style={{ color: '#ff4d4f' }}>*</span></label>
+                    <input type="text" name="name" value={formData.name} onChange={handleInputChange} required placeholder="مثال: طماطم" />
+                  </div>
+                  
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>السعر (ريال) <span style={{ color: '#ff4d4f' }}>*</span></label>
+                    <input type="number" name="price" value={formData.price} onChange={handleInputChange} required min="0" step="0.01" />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>التصنيف</label>
+                    <select name="category_id" value={formData.category_id} onChange={handleInputChange}>
+                      <option value="">بدون تصنيف</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>وحدة البيع <span style={{ color: '#ff4d4f' }}>*</span></label>
+                    <select name="unit_type" value={formData.unit_type} onChange={handleInputChange} required>
+                      {units.map(u => (
+                        <option key={u.code} value={u.code}>{u.name_ar}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Offer details */}
+                <div className="form-group" style={{ background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: 'var(--border-radius-md)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: formData.is_offer ? '15px' : '0' }}>
+                    <input 
+                      type="checkbox" 
+                      name="is_offer" 
+                      checked={formData.is_offer} 
+                      onChange={handleInputChange} 
+                      style={{ width: '18px', height: '18px' }}
+                    />
+                    <span>هل المنتج عليه عرض خاص؟</span>
+                  </label>
+
+                  {formData.is_offer && (
+                    <div className="form-row">
+                      <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                        <label>نص العرض (مثال: عرض اليوم)</label>
+                        <input type="text" name="offer_label" value={formData.offer_label} onChange={handleInputChange} placeholder="نص قصير..." />
+                      </div>
+                      <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                        <label>لون بادج العرض</label>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                          <input type="color" name="offer_color" value={formData.offer_color} onChange={handleInputChange} style={{ height: '40px', width: '50px', padding: 0, border: 'none', borderRadius: '4px' }} />
+                          <span style={{ color: 'var(--text-secondary)' }}>اختر اللون</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-actions">
+                  {editingProductId && (
+                    <button type="button" className="btn-secondary" onClick={resetForm}>
+                      إلغاء التعديل
+                    </button>
+                  )}
+                  <button type="submit" className="btn-primary" disabled={isSubmitting}>
+                    {isSubmitting ? 'جاري الحفظ...' : (editingProductId ? 'حفظ التعديلات' : 'إضافة المنتج')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+
+        {/* Products List Accordion */}
+        <div className="glass accordion-card" style={{ borderRadius: 'var(--border-radius-lg)', overflow: 'hidden' }}>
+          <div 
+            onClick={() => toggleAccordion('products')}
+            style={{ padding: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: activeAccordion === 'products' ? 'rgba(255,255,255,0.05)' : 'transparent', transition: 'background 0.3s' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>
+              <Package size={24} />
+              المنتجات الحالية ({products.length})
+            </div>
+            <div>{activeAccordion === 'products' ? '▲' : '▼'}</div>
+          </div>
+          {activeAccordion === 'products' && (
+            <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="admin-products-grid">
+                {products.map(product => {
+                  const unitName = (units.find(u => u.code === product.unit_type))?.name_ar || product.unit_type;
+                  const categoryName = (categories.find(c => c.id == product.category_id))?.name || 'بدون تصنيف';
+
+                  return (
+                    <div key={product.id} className="admin-product-card glass">
+                      {product.is_offer && (
+                        <div className="offer-badge-preview" style={{ background: product.offer_color || '#E65100' }}>
+                          {product.offer_label || 'عرض'}
+                        </div>
+                      )}
+                      {product.image_url && (
+                        <div className="admin-product-img">
+                          <img src={product.image_url} alt={product.name} />
+                        </div>
+                      )}
+                      <div className="admin-product-info">
+                        <h3>{product.name}</h3>
+                        <p className="admin-product-price">{product.current_price} ريال / {unitName}</p>
+                        <span className="admin-product-category">{categoryName}</span>
+                      </div>
+                      <div className="admin-product-actions">
+                        <button onClick={() => handleEditClick(product)} className="btn-edit" title="تعديل">
+                          <Edit size={18} />
+                        </button>
+                        <button onClick={() => handleDeleteProduct(product.id)} className="btn-delete" title="حذف">
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
       {/* Image Gallery Modal */}
       {showGallery && (
         <div className="modal-overlay">
@@ -424,63 +544,6 @@ export default function AdminDashboard() {
                 ))}
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Weight Units Management Modal */}
-      {showUnitsModal && (
-        <div className="modal-overlay">
-          <div className="gallery-modal glass animate-slide-up" style={{ maxWidth: '500px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ marginBottom: 0, color: 'var(--primary-color)' }}>إدارة وحدات الوزن ⚖️</h2>
-              <button onClick={() => setShowUnitsModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                <X size={24} />
-              </button>
-            </div>
-
-            {/* Add New Unit Form */}
-            <form onSubmit={handleAddUnit} style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
-              <input 
-                type="text" 
-                placeholder="اسم الوحدة بالكامل (مثال: كيس كبير)" 
-                value={newUnitNameAr} 
-                onChange={(e) => setNewUnitNameAr(e.target.value)} 
-                required 
-                style={{ flex: 1, padding: '12px', borderRadius: 'var(--border-radius-md)', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)', color: 'white' }}
-              />
-              <button 
-                type="submit" 
-                disabled={isSavingUnit}
-                className="btn-primary"
-                style={{ padding: '12px 20px', whiteSpace: 'nowrap' }}
-              >
-                {isSavingUnit ? 'جاري الحفظ...' : 'إضافة وحدة'}
-              </button>
-            </form>
-
-            {/* Units List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <h3 style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>الوحدات المتوفرة ({units.length})</h3>
-              {units.length === 0 ? (
-                <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '15px' }}>لا توجد وحدات مضافة حالياً.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
-                  {units.map(u => (
-                    <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', borderRadius: 'var(--border-radius-md)', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <span style={{ fontWeight: '500' }}>{u.name_ar}</span>
-                      <button 
-                        onClick={() => handleDeleteUnit(u.id, u.code)} 
-                        style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '5px' }}
-                        title="حذف الوحدة"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
         </div>
       )}
