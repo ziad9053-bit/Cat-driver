@@ -8,7 +8,7 @@ import { useCart } from '../context/CartContext';
 import './catalog.css';
 
 export default function ProductCatalog() {
-  const { products, cart, updateQuantity, loading } = useCart();
+  const { products, cart, updateQuantity, loading, unitTranslations } = useCart();
   const router = useRouter();
 
   const [activeCategory, setActiveCategory] = useState(null);
@@ -273,14 +273,7 @@ export default function ProductCatalog() {
           <div className="products-grid">
             {filteredProducts.map((product, index) => {
               const quantity = cart[product.id] || 0;
-              const unitTranslations = {
-                'Kilo': 'كيلو',
-                'SmallBox': 'فلين صغير',
-                'MediumBox': 'فلين وسط',
-                'LargeBox': 'فلين كبير',
-                'Box': 'صندوق' // legacy
-              };
-              const unitName = unitTranslations[product.unit_type] || product.unit_type;
+              const unitName = (unitTranslations && unitTranslations[product.unit_type]) || product.unit_type;
               
               return (
                 <div 

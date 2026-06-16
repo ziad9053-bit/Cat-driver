@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Package, CheckCircle, BellRing, Clock } from 'lucide-react';
+import { useCart } from '../../context/CartContext';
 import './preparer.css';
 
 export default function PreparerDashboard() {
+  const { unitTranslations } = useCart();
   const [orders, setOrders] = useState([]);
   const [pastOrders, setPastOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -190,14 +192,7 @@ export default function PreparerDashboard() {
               ) : (
                 <div className="items-list">
                   {orderItems.map(item => {
-                    const unitTranslations = {
-                      'Kilo': 'كيلو',
-                      'SmallBox': 'فلين صغير',
-                      'MediumBox': 'فلين وسط',
-                      'LargeBox': 'فلين كبير',
-                      'Box': 'صندوق'
-                    };
-                    const unitName = item.products?.unit_type ? (unitTranslations[item.products.unit_type] || item.products.unit_type) : 'وحدة';
+                    const unitName = item.products?.unit_type ? ((unitTranslations && unitTranslations[item.products.unit_type]) || item.products.unit_type) : 'وحدة';
 
                     return (
                       <div key={item.id} className="item-row">

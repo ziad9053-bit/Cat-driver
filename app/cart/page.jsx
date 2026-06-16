@@ -18,7 +18,8 @@ export default function CartCheckout() {
     removeItem = () => {}, 
     clearCart = () => {}, 
     subtotal = 0, 
-    loading = false 
+    loading = false,
+    unitTranslations = {}
   } = cartContext || {};
   
   const [paymentMethod, setPaymentMethod] = useState('Cash');
@@ -172,14 +173,7 @@ export default function CartCheckout() {
           ) : (
             <div className="items-list">
               {cartItems.map(item => {
-                const unitTranslations = {
-                  'Kilo': 'كيلو',
-                  'SmallBox': 'فلين صغير',
-                  'MediumBox': 'فلين وسط',
-                  'LargeBox': 'فلين كبير',
-                  'Box': 'صندوق'
-                };
-                const unitName = unitTranslations[item.unit_type] || item.unit_type;
+                const unitName = (unitTranslations && unitTranslations[item.unit_type]) || item.unit_type;
 
                 return (
                 <div key={item.product_id} className="cart-item glass">

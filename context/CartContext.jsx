@@ -10,6 +10,7 @@ export function CartProvider({ children }) {
   const [cart, setCart] = useState({}); // { product_id: quantity }
   const [loading, setLoading] = useState(true);
   const [isCartLoaded, setIsCartLoaded] = useState(false);
+  const [unitTranslations, setUnitTranslations] = useState({});
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -34,7 +35,7 @@ export function CartProvider({ children }) {
     }
   }, [cart, isCartLoaded]);
 
-  // Fetch actual products from Supabase
+  // Fetch actual products and unit translations from Supabase
   useEffect(() => {
     const fetchProducts = async () => {
       const { data, error } = await supabase.from('products').select('*');
@@ -43,8 +44,20 @@ export function CartProvider({ children }) {
       }
       setLoading(false);
     };
+
+    const fetchUnits = async () => {
+      const { data, error } = await supabase.from('product_units').select('*');
+      if (data) {
+        const trans = {};
+        data.forEach(u => {
+          trans[u.code] = u.name_ar;
+        });
+        setUnitTranslations(trans);
+      }
+    };
     
     fetchProducts();
+    fetchUnits();
 
     // Listen to changes on the products table to update prices instantly
     const channel = supabase
@@ -67,8 +80,17 @@ export function CartProvider({ children }) {
       })
       .subscribe();
 
+    // Listen to changes on product_units table
+    const unitsChannel = supabase
+      .channel('realtime_units')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'product_units' }, (payload) => {
+        fetchUnits();
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(unitsChannel);
     };
   }, []);
 
@@ -129,7 +151,8 @@ export function CartProvider({ children }) {
       removeItem,
       clearCart,
       cartItemsCount,
-      subtotal
+      subtotal,
+      unitTranslations
     }}>
       {children}
     </CartContext.Provider>

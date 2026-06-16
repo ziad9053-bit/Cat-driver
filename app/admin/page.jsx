@@ -13,8 +13,12 @@ export default function AdminDashboard() {
   const [editingProductId, setEditingProductId] = useState(null);
 
   const [categories, setCategories] = useState([]);
+  const [units, setUnits] = useState([]);
+  const [showUnitsModal, setShowUnitsModal] = useState(false);
+  const [newUnitNameAr, setNewUnitNameAr] = useState('');
+  const [isSavingUnit, setIsSavingUnit] = useState(false);
 
-  // Fetch products and categories
+  // Fetch products, categories, and units
   const fetchData = async () => {
     const { data: prods, error: prodErr } = await supabase
       .from('products')
@@ -30,6 +34,14 @@ export default function AdminDashboard() {
 
     if (catErr) console.error('Error fetching categories:', catErr);
     else setCategories(cats || []);
+
+    const { data: utypes, error: utypesErr } = await supabase
+      .from('product_units')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (utypesErr) console.error('Error fetching units:', utypesErr);
+    else setUnits(utypes || []);
   };
 
   useEffect(() => {
@@ -136,6 +148,55 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleAddUnit = async (e) => {
+    e.preventDefault();
+    if (!newUnitNameAr.trim()) return;
+    setIsSavingUnit(true);
+
+    const code = 'unit_' + Date.now();
+
+    const { error } = await supabase
+      .from('product_units')
+      .insert([{ code, name_ar: newUnitNameAr.trim() }]);
+
+    if (error) {
+      alert('حدث خطأ أثناء إضافة الوحدة: ' + error.message);
+    } else {
+      setNewUnitNameAr('');
+      const { data: utypes } = await supabase
+        .from('product_units')
+        .select('*')
+        .order('created_at', { ascending: true });
+      if (utypes) setUnits(utypes);
+    }
+    setIsSavingUnit(false);
+  };
+
+  const handleDeleteUnit = async (unitId, code) => {
+    const isUsed = products.some(p => p.unit_type === code);
+    if (isUsed) {
+      alert('لا يمكن حذف هذه الوحدة لأنها مستخدمة حالياً في بعض المنتجات. يرجى تغيير وحدة المنتجات أولاً.');
+      return;
+    }
+
+    if (confirm('هل أنت متأكد من حذف هذه الوحدة نهائياً؟')) {
+      const { error } = await supabase
+        .from('product_units')
+        .delete()
+        .eq('id', unitId);
+
+      if (error) {
+        alert('حدث خطأ أثناء الحذف: ' + error.message);
+      } else {
+        const { data: utypes } = await supabase
+          .from('product_units')
+          .select('*')
+          .order('created_at', { ascending: true });
+        if (utypes) setUnits(utypes);
+      }
+    }
+  };
+
   const handleAddProduct = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -192,11 +253,16 @@ export default function AdminDashboard() {
 
   return (
     <div className="page-wrapper admin-dashboard">
-      <header className="admin-header">
-        <h1>لوحة تحكم المدير</h1>
-        <button className="btn-primary" onClick={() => setShowAddForm(!showAddForm)}>
-          <Plus size={20} /> إضافة صنف جديد
-        </button>
+      <header className="admin-header" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <h1 style={{ flexGrow: 1 }}>لوحة تحكم المدير</h1>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => setShowUnitsModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: 'var(--border-radius-md)', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer' }}>
+            ⚖️ إدارة وحدات الوزن
+          </button>
+          <button className="btn-primary" onClick={() => setShowAddForm(!showAddForm)}>
+            <Plus size={20} /> إضافة صنف جديد
+          </button>
+        </div>
       </header>
 
       {showAddForm && (
@@ -260,10 +326,9 @@ export default function AdminDashboard() {
               <div className="form-group">
                 <label>وحدة الوزن</label>
                 <select value={formData.unit_type} onChange={(e) => setFormData({...formData, unit_type: e.target.value})}>
-                  <option value="Kilo">كيلو</option>
-                  <option value="SmallBox">فلين صغير</option>
-                  <option value="MediumBox">فلين وسط</option>
-                  <option value="LargeBox">فلين كبير</option>
+                  {units.map(u => (
+                    <option key={u.id} value={u.code}>{u.name_ar}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -300,8 +365,7 @@ export default function AdminDashboard() {
         <h2 style={{ marginBottom: '20px', color: 'var(--primary-color)' }}>المنتجات الحالية ({products.length})</h2>
         <div className="admin-products-grid">
           {products.map(product => {
-            const unitTranslations = { 'Kilo': 'كيلو', 'SmallBox': 'فلين صغير', 'MediumBox': 'فلين وسط', 'LargeBox': 'فلين كبير', 'Box': 'صندوق' };
-            const unitName = unitTranslations[product.unit_type] || product.unit_type;
+            const unitName = units.find(u => u.code === product.unit_type)?.name_ar || product.unit_type;
             const categoryName = categories.find(c => c.id == product.category_id)?.name || 'غير مصنف';
 
             return (
@@ -353,6 +417,63 @@ export default function AdminDashboard() {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Weight Units Management Modal */}
+      {showUnitsModal && (
+        <div className="modal-overlay">
+          <div className="gallery-modal glass animate-slide-up" style={{ maxWidth: '500px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ marginBottom: 0, color: 'var(--primary-color)' }}>إدارة وحدات الوزن ⚖️</h2>
+              <button onClick={() => setShowUnitsModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Add New Unit Form */}
+            <form onSubmit={handleAddUnit} style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
+              <input 
+                type="text" 
+                placeholder="اسم الوحدة بالكامل (مثال: كيس كبير)" 
+                value={newUnitNameAr} 
+                onChange={(e) => setNewUnitNameAr(e.target.value)} 
+                required 
+                style={{ flex: 1, padding: '12px', borderRadius: 'var(--border-radius-md)', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)', color: 'white' }}
+              />
+              <button 
+                type="submit" 
+                disabled={isSavingUnit}
+                className="btn-primary"
+                style={{ padding: '12px 20px', whiteSpace: 'nowrap' }}
+              >
+                {isSavingUnit ? 'جاري الحفظ...' : 'إضافة وحدة'}
+              </button>
+            </form>
+
+            {/* Units List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <h3 style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>الوحدات المتوفرة ({units.length})</h3>
+              {units.length === 0 ? (
+                <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '15px' }}>لا توجد وحدات مضافة حالياً.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
+                  {units.map(u => (
+                    <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', borderRadius: 'var(--border-radius-md)', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <span style={{ fontWeight: '500' }}>{u.name_ar}</span>
+                      <button 
+                        onClick={() => handleDeleteUnit(u.id, u.code)} 
+                        style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '5px' }}
+                        title="حذف الوحدة"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

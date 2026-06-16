@@ -5,9 +5,11 @@ import { supabase } from '../../lib/supabase';
 import { CheckCircle, Clock, Package, Truck, Home, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useCart } from '../../context/CartContext';
 import './track.css';
 
 function OrderTrackingContent() {
+  const { unitTranslations } = useCart();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const [order, setOrder] = useState(null);
@@ -124,14 +126,7 @@ function OrderTrackingContent() {
         <h2 style={{ marginBottom: '20px', color: 'var(--primary-color)', fontSize: '1.4rem' }}>تفاصيل المشتريات ({items.length})</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {items.map(item => {
-            const unitTranslations = {
-              'Kilo': 'كيلو',
-              'SmallBox': 'فلين صغير',
-              'MediumBox': 'فلين وسط',
-              'LargeBox': 'فلين كبير',
-              'Box': 'صندوق'
-            };
-            const unitName = item.products?.unit_type ? (unitTranslations[item.products.unit_type] || item.products.unit_type) : 'وحدة';
+            const unitName = item.products?.unit_type ? ((unitTranslations && unitTranslations[item.products.unit_type]) || item.products.unit_type) : 'وحدة';
             
             return (
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
