@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- الصفحة الرئيسية: متجر خيرات الجوف -->
+  <!-- الصفحة الرئيسية: مخزن الجوف للخضروات -->
   <url>
-    <loc>https://cat-driver.vercel.app/</loc>
-    <lastmod>2026-06-16</lastmod>
+    <loc>https://aljouf-market.vercel.app/</loc>
+    <lastmod>2026-06-19</lastmod>
     <changefreq>hourly</changefreq>
     <priority>1.0</priority>
   </url>
   
   <!-- صفحة السلة -->
   <url>
-    <loc>https://cat-driver.vercel.app/cart/</loc>
-    <lastmod>2026-06-16</lastmod>
+    <loc>https://aljouf-market.vercel.app/cart/</loc>
+    <lastmod>2026-06-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <!-- صفحة التتبع -->
   <url>
-    <loc>https://cat-driver.vercel.app/track/</loc>
-    <lastmod>2026-06-16</lastmod>
+    <loc>https://aljouf-market.vercel.app/track/</loc>
+    <lastmod>2026-06-19</lastmod>
     <changefreq>always</changefreq>
     <priority>0.5</priority>
   </url>

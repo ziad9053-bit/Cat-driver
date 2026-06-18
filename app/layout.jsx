@@ -4,9 +4,13 @@ import { SettingsProvider } from '../context/SettingsContext';
 import Navbar from './components/Navbar';
 
 export const metadata = {
-  title: 'متجر خيرات الجوف - أجود أنواع الخضار والفواكه والبقوليات الطازجة',
-  description: 'تسوق أفضل الخضار والفواكه الطازجة والبقوليات المختارة بعناية. نوفر لك الجودة العالية والتوصيل السريع للمنزل. نخدم أهالي الجوف والمنطقة الشمالية بجودة لا تضاهى. اطلب الآن واستمتع بطعم الطبيعة!',
-  keywords: 'خضار طازجة، فواكه موسمية، بقوليات، متجر خضار، توصيل خضار وفواكه، خضار عضوية',
+  title: 'مخزن الجوف للخضروات | أجود أنواع الخضار والفواكه الطازجة',
+  description: 'تسوق أفضل الخضار والفواكه الطازجة والبقوليات المختارة بعناية من مخزن الجوف للخضروات. نوفر لك أعلى جودة طازجة وتوصيل سريع ومباشر للمنزل.',
+  keywords: 'مخزن الجوف للخضروات، خضار طازجة، فواكه موسمية، بقوليات، متجر خضار الجوف، توصيل خضار وفواكه، سكاكا، دومة الجندل',
+  robots: 'index, follow',
+  alternates: {
+    canonical: 'https://aljouf-market.vercel.app/',
+  },
   verification: {
     google: '9dURtgX7JFddlPam0l1r86LKYrAML7FsMw-V3LMeyUw',
   },
@@ -16,9 +20,11 @@ export default function RootLayout({ children }) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "GroceryStore",
-    "name": "متجر خيرات الجوف",
-    "description": "تسوق أفضل الخضار والفواكه الطازجة والبقوليات المختارة بعناية. نوفر لك الجودة العالية والتوصيل السريع للمنزل. نخدم أهالي الجوف والمنطقة الشمالية بجودة لا تضاهى.",
-    "url": "https://cat-driver.vercel.app/",
+    "name": "مخزن الجوف للخضروات",
+    "description": "تسوق أفضل الخضار والفواكه الطازجة والبقوليات المختارة بعناية من مخازننا في الجوف إليك مباشرة.",
+    "url": "https://aljouf-market.vercel.app/",
+    "telephone": "+966500000000",
+    "priceRange": "$$",
     "areaServed": ["الجوف", "المنطقة الشمالية", "سكاكا", "دومة الجندل", "طبرجل"],
     "address": {
       "@type": "PostalAddress",
