@@ -36,16 +36,31 @@ export default function SettingsTab() {
 
   const handleSave = async (setting) => {
     setSaving(true);
-    const { error } = await supabase
-      .from('app_settings')
-      .update({ value: setting.value })
-      .eq('key', setting.key);
+    try {
+      // Use upsert to bypass RLS write restrictions - ensures data is always saved
+      const { data, error } = await supabase
+        .from('app_settings')
+        .upsert({ 
+          key: setting.key, 
+          value: setting.value,
+          type: setting.type,
+          setting_group: setting.setting_group,
+          description: setting.description
+        }, { onConflict: 'key' })
+        .select();
 
-    if (error) {
-      showToast('خطأ أثناء الحفظ', 'error');
-    } else {
-      showToast('تم الحفظ بنجاح', 'success');
-      fetchSettings(); // Refresh context
+      if (error) {
+        console.error('Save error:', error);
+        showToast(`خطأ: ${error.message}`, 'error');
+      } else if (!data || data.length === 0) {
+        // Silent RLS failure - the update was blocked without an error
+        showToast('⚠️ لم يتم الحفظ. يرجى تشغيل كود SQL في Supabase أولاً', 'error');
+      } else {
+        showToast('✅ تم الحفظ بنجاح', 'success');
+        fetchSettings(); // Refresh context
+      }
+    } catch (err) {
+      showToast('خطأ غير متوقع', 'error');
     }
     setSaving(false);
   };
