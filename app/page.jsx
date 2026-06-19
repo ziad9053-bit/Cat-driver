@@ -54,8 +54,8 @@ export default function ProductCatalog() {
     return (
       <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
         <header className="page-header" style={{textAlign: 'center', margin: '20px 0'}}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>{settings?.store_name || 'متجر كات درايفر'}</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>{settings?.store_subtitle || 'خدمة التوصيل الفاخرة لاحتياجاتك اليومية.'}</p>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>{settings?.store_name || 'مخزن الجوف للخضروات'}</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>{settings?.store_subtitle || 'خضروات وفواكه طازجة من المزرعة إلى المخزن ثم إلى باب بيتك مباشرة.'}</p>
         </header>
 
         {/* Stable pulsating skeletons to prevent layout shift & flickering */}
@@ -156,8 +156,8 @@ export default function ProductCatalog() {
   return (
     <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
       <header className="page-header" style={{textAlign: 'center', margin: '20px 0'}}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>{settings?.store_name || 'متجر كات درايفر'}</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>{settings?.store_subtitle || 'خدمة التوصيل الفاخرة لاحتياجاتك اليومية.'}</p>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>{settings?.store_name || 'مخزن الجوف للخضروات'}</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>{settings?.store_subtitle || 'خضروات وفواكه طازجة من المزرعة إلى المخزن ثم إلى باب بيتك مباشرة.'}</p>
       </header>
 
       {/* Persistent Bottom Navigation Bar */}

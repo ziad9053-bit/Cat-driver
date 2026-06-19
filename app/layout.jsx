@@ -4,7 +4,7 @@ import { SettingsProvider } from '../context/SettingsContext';
 import Navbar from './components/Navbar';
 
 export const metadata = {
-  title: 'مخزن الجوف للخضروات | أجود أنواع الخضار والفواكه الطازجة',
+  title: 'مخزن الجوف للخضروات | أجود أنواع الخضار والفواكه والطازجة',
   description: 'تسوق أفضل الخضار والفواكه الطازجة والبقوليات المختارة بعناية من مخزن الجوف للخضروات. نوفر لك أعلى جودة طازجة وتوصيل سريع ومباشر للمنزل.',
   keywords: 'مخزن الجوف للخضروات، خضار طازجة، فواكه موسمية، بقوليات، متجر خضار الجوف، توصيل خضار وفواكه، سكاكا، دومة الجندل',
   robots: 'index, follow',
@@ -21,7 +21,7 @@ export default function RootLayout({ children }) {
     "@context": "https://schema.org",
     "@type": "GroceryStore",
     "name": "مخزن الجوف للخضروات",
-    "description": "تسوق أفضل الخضار والفواكه الطازجة والبقوليات المختارة بعناية من مخازننا في الجوف إليك مباشرة.",
+    "description": "تسوق أفضل الخضار والفواكه الطازجة والبقوليات المختارة بعناية من مخزن الجوف للخضروات. نوفر لك أعلى جودة طازجة وتوصيل سريع ومباشر للمنزل.",
     "url": "https://aljouf-market.vercel.app/",
     "telephone": "+966500000000",
     "priceRange": "$$",
