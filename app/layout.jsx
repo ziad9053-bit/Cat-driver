@@ -12,10 +12,7 @@ export const metadata = {
     canonical: 'https://aljouf-market.vercel.app/',
   },
   verification: {
-    google: [
-      '9dURtgX7JFddlPam0l1r86LKYrAML7FsMw-V3LMeyUw',
-      'google09ac81f6c6e5b1cc',
-    ],
+    google: '9dURtgX7JFddlPam0l1r86LKYrAML7FsMw-V3LMeyUw',
   },
 };
 
