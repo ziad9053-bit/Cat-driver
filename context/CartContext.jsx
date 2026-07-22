@@ -15,6 +15,7 @@ export function CartProvider({ children }) {
     }
     return [];
   });
+  const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState({}); // { product_id: quantity }
   const [loading, setLoading] = useState(true);
   const [isCartLoaded, setIsCartLoaded] = useState(false);
@@ -53,14 +54,19 @@ export function CartProvider({ children }) {
 
   // Fetch actual products and unit translations from Supabase
   useEffect(() => {
-    const fetchProducts = async () => {
-      const { data, error } = await supabase.from('products').select('*');
-      if (data) {
-        setProducts(data);
+    const fetchAll = async () => {
+      const [productsResponse, categoriesResponse] = await Promise.all([
+        supabase.from('products').select('*'),
+        supabase.from('categories').select('*')
+      ]);
+
+      if (productsResponse.data) {
+        setProducts(productsResponse.data);
         if (typeof window !== 'undefined') {
-          localStorage.setItem('cat_driver_products', JSON.stringify(data));
+          localStorage.setItem('cat_driver_products', JSON.stringify(productsResponse.data));
         }
       }
+      if (categoriesResponse.data) setCategories(categoriesResponse.data);
       setLoading(false);
     };
 
@@ -166,6 +172,7 @@ export function CartProvider({ children }) {
   return (
     <CartContext.Provider value={{
       products,
+      categories,
       cart,
       cartItems,
       loading,

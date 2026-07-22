@@ -1,443 +1,93 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '../lib/supabase';
-import { Plus, Minus, ShoppingBag, Carrot, Wheat, Apple, Leaf, Home } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { useSettings } from '../context/SettingsContext';
+import Link from 'next/link';
+import { Tag, Grid } from 'lucide-react';
 import './catalog.css';
+import Image from 'next/image';
 
-export default function ProductCatalog() {
-  const { products, cart, updateQuantity, loading, unitTranslations } = useCart();
-  const { settings, loading: settingsLoading } = useSettings();
-  const router = useRouter();
+export default function Home() {
+  const { products, categories, loading } = useCart();
 
-  const [activeCategory, setActiveCategory] = useState(null);
-  const [categoriesList, setCategoriesList] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem('cat_driver_categories');
-        if (cached) return JSON.parse(cached);
-      } catch (e) {}
-    }
-    return [];
-  });
-  const [mounted, setMounted] = useState(false);
-  
-  // Fetch dynamic categories
-  useEffect(() => {
-    setMounted(true);
-    const loadCategories = async () => {
-      const { data, error } = await supabase.from('categories').select('*');
-      if (data && data.length > 0) {
-        // Order them consistently
-        const ordered = [...data].sort((a, b) => {
-          if (a.name.includes('خضار')) return -1;
-          if (b.name.includes('خضار')) return 1;
-          if (a.name.includes('بقول')) return -1;
-          if (b.name.includes('بقول')) return 1;
-          return 0;
-        });
-        setCategoriesList(ordered);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('cat_driver_categories', JSON.stringify(ordered));
-        }
-      }
-    };
-    loadCategories();
-  }, []);
-
-  const hasCachedData = products.length > 0 || categoriesList.length > 0 || Object.keys(settings).length > 0;
-
-  if (((loading || settingsLoading) && !hasCachedData)) {
+  if (loading) {
     return (
-      <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
-        <header className="page-header" style={{textAlign: 'center', margin: '20px 0'}}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>{settings?.store_name || 'مخزن الجوف للخضروات'}</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>{settings?.store_subtitle || 'خضروات وفواكه طازجة من المزرعة إلى المخزن ثم إلى باب بيتك مباشرة.'}</p>
-        </header>
-
-        {/* Stable pulsating skeletons to prevent layout shift & flickering */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
-          {[1, 2, 3].map(i => (
-            <div key={i} className="glass animate-pulse" style={{ height: '160px', borderRadius: 'var(--border-radius-lg)', border: '1px solid rgba(212, 175, 55, 0.1)' }}></div>
-          ))}
+      <div className="page-wrapper animate-fade-in">
+        <div className="glass loading-card">
+          <h1>جاري تحميل المتجر... 🛒</h1>
         </div>
       </div>
     );
   }
 
-  const handleAddToCart = (e, productId, amount) => {
-    if (amount > 0) {
-      // 1. Haptic feedback
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(50);
-      }
-      
-      // 2. Play subtle premium sound
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-        gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.1);
-      } catch (err) {}
-
-      // 3. Create Flying Element
-      try {
-        const button = e.currentTarget;
-        const rect = button.getBoundingClientRect();
-        const dot = document.createElement('div');
-        dot.style.position = 'fixed';
-        dot.style.left = `${rect.left + rect.width / 2 - 10}px`;
-        dot.style.top = `${rect.top + rect.height / 2 - 10}px`;
-        dot.style.width = '20px';
-        dot.style.height = '20px';
-        dot.style.backgroundColor = 'var(--primary-color)';
-        dot.style.borderRadius = '50%';
-        dot.style.zIndex = '9999';
-        dot.style.pointerEvents = 'none';
-        dot.style.transition = 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
-        dot.style.boxShadow = '0 0 15px var(--primary-color)';
-        document.body.appendChild(dot);
-
-        // Get Cart Icon Position
-        const cartIcon = document.getElementById('cart-nav-button');
-        let targetX = window.innerWidth / 2;
-        let targetY = window.innerHeight;
-        if (cartIcon) {
-          const cartRect = cartIcon.getBoundingClientRect();
-          targetX = cartRect.left + cartRect.width / 2 - 10;
-          targetY = cartRect.top + cartRect.height / 2 - 10;
-        }
-
-        // Trigger animation
-        requestAnimationFrame(() => {
-          dot.style.left = `${targetX}px`;
-          dot.style.top = `${targetY}px`;
-          dot.style.transform = 'scale(0.2)';
-          dot.style.opacity = '0.3';
-        });
-
-        // Bounce cart icon
-        if (cartIcon) {
-          setTimeout(() => {
-            cartIcon.style.transform = 'scale(1.2)';
-            setTimeout(() => {
-              cartIcon.style.transform = 'scale(1)';
-            }, 150);
-          }, 400);
-        }
-
-        setTimeout(() => {
-          if (document.body.contains(dot)) document.body.removeChild(dot);
-        }, 500);
-      } catch (err) {}
-    } else {
-      if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(30);
-    }
-    
-    updateQuantity(productId, amount);
-  };
-
-  // Filter products by category
-  const filteredProducts = activeCategory 
-    ? products.filter(p => p.category_id == activeCategory)
-    : [];
+  const mainCategories = categories.filter(c => c.parent_id === null);
+  const offerProducts = products.filter(p => p.is_offer);
 
   return (
-    <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
-      <header className="page-header" style={{textAlign: 'center', margin: '20px 0'}}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>{settings?.store_name || 'مخزن الجوف للخضروات'}</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>{settings?.store_subtitle || 'خضروات وفواكه طازجة من المزرعة إلى المخزن ثم إلى باب بيتك مباشرة.'}</p>
+    <div className="page-wrapper animate-fade-in">
+      <header className="page-header">
+        <h1>متجر فريشلي الشامل</h1>
+        <p>كل ما تحتاجه لمنزلك في مكان واحد.</p>
       </header>
 
-      {/* Persistent Bottom Navigation Bar */}
-      <div className="bottom-nav-bar glass" style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '70px',
-        background: 'rgba(26, 26, 26, 0.85)',
-        backdropFilter: 'blur(20px)',
-        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-        display: 'flex',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        zIndex: 1000,
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        boxShadow: '0 -4px 20px rgba(0,0,0,0.4)'
-      }}>
-        {/* Home Button */}
-        <button 
-          onClick={() => {
-            setActiveCategory(null);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: activeCategory === null ? 'var(--primary-color)' : 'var(--text-secondary)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '4px',
-            cursor: 'pointer',
-            transition: 'var(--transition-fast)',
-            fontSize: '0.85rem',
-            fontWeight: activeCategory === null ? 'bold' : 'normal',
-            flex: 1
-          }}
-        >
-          <Home size={22} />
-          <span>الرئيسية</span>
-        </button>
-
-        {categoriesList.map(cat => {
-          let icon = <Leaf size={22} />;
-          if (cat.name.includes('خضار')) icon = <Carrot size={22} />;
-          else if (cat.name.includes('بقول')) icon = <Wheat size={22} />;
-          else if (cat.name.includes('فواك')) icon = <Apple size={22} />;
-
-          const isActive = activeCategory === cat.id;
-
-          return (
-            <button 
-              key={cat.id} 
-              onClick={() => {
-                setActiveCategory(cat.id);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: isActive ? 'var(--primary-color)' : 'var(--text-secondary)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '4px',
-                cursor: 'pointer',
-                transition: 'var(--transition-fast)',
-                fontSize: '0.85rem',
-                fontWeight: isActive ? 'bold' : 'normal',
-                flex: 1
-              }}
-            >
-              {icon}
-              <span>{cat.name}</span>
-            </button>
-          );
-        })}
-        
-        {/* Cart Item in Bottom Bar */}
-        <button 
-          id="cart-nav-button"
-          onClick={() => router.push('/cart/')}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-secondary)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '4px',
-            cursor: 'pointer',
-            transition: 'var(--transition-fast)',
-            fontSize: '0.85rem',
-            position: 'relative',
-            flex: 1
-          }}
-        >
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ShoppingBag size={22} />
-            {Object.keys(cart).length > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '-6px',
-                right: '-10px',
-                background: 'var(--primary-color)',
-                color: 'black',
-                borderRadius: '50%',
-                width: '18px',
-                height: '18px',
-                fontSize: '0.7rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 'bold'
-              }}>
-                {Object.values(cart).reduce((a, b) => a + b, 0)}
-              </span>
-            )}
-          </div>
-          <span>السلة</span>
-        </button>
+      {/* الأقسام الرئيسية */}
+      <h2 className="section-title">
+        <Grid size={24} />
+        تصفح الأقسام
+      </h2>
+      <div className="categories-grid">
+        {mainCategories.map((category, index) => (
+          <Link 
+            href={`/category/${category.id}`} 
+            key={category.id} 
+            className="category-card animate-slide-up"
+            style={{ animationDelay: `${index * 0.05}s` }}
+          >
+            <div className="category-image-wrapper">
+              <Image 
+                src={category.image_url || 'https://via.placeholder.com/400?text=قسم'} 
+                alt={category.name}
+                fill
+                className="category-image"
+              />
+            </div>
+            <div className="category-title">
+              {category.name}
+            </div>
+          </Link>
+        ))}
       </div>
 
-      {activeCategory === null ? (
-        /* Home Dashboard Category Rows */
-        <div className="category-rows-container" style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px',
-          marginTop: '20px'
-        }}>
-          {categoriesList.map(cat => {
-            let bgImage = 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&q=80';
-            let subtitle = 'طازجة يومياً من المزرعة إليك';
-            let icon = '🥕';
-            
-            if (cat.name.includes('بقول')) {
-              bgImage = 'https://images.unsplash.com/photo-1574316071802-0d684efa7bf5?w=800&q=80';
-              subtitle = 'حبوب وبقوليات منتقاة بجودة عالية';
-              icon = '🌾';
-            } else if (cat.name.includes('فواك')) {
-              bgImage = 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=800&q=80';
-              subtitle = 'فواكه موسمية غنية بالفيتامينات';
-              icon = '🍎';
-            }
-
-            return (
-              <div 
-                key={cat.id}
-                onClick={() => {
-                  setActiveCategory(cat.id);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="category-row-card glass"
-                style={{
-                  position: 'relative',
-                  height: '160px',
-                  borderRadius: 'var(--border-radius-lg)',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: 'var(--shadow-md)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.02)';
-                  e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                }}
-              >
-                {/* Background Image with Overlay */}
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundImage: `url(${bgImage})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  zIndex: 1
-                }}></div>
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'linear-gradient(135deg, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.3) 100%)',
-                  zIndex: 2
-                }}></div>
-
-                {/* Content */}
-                <div style={{
-                  position: 'relative',
-                  zIndex: 3,
-                  textAlign: 'center',
-                  color: 'white',
-                  padding: '20px'
-                }}>
-                  <h2 style={{ fontSize: '1.8rem', margin: 0, fontWeight: '800', color: 'var(--primary-color)', textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}>
-                    {cat.name} {icon}
-                  </h2>
-                  <p style={{ margin: '8px 0 0 0', color: 'rgba(255,255,255,0.85)', fontSize: '1.05rem', fontWeight: '500' }}>
-                    {subtitle}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        /* Products Grid */
-        filteredProducts.length === 0 ? (
-          <div className="empty-state glass">
-            <ShoppingBag size={48} className="empty-icon" />
-            <p>لا توجد منتجات متاحة في هذا القسم حالياً.</p>
-          </div>
-        ) : (
+      {/* قسم العروض الخاصة */}
+      {offerProducts.length > 0 && (
+        <>
+          <h2 className="section-title">
+            <Tag size={24} color="var(--error-color)" />
+            عروض اليوم
+          </h2>
           <div className="products-grid">
-            {filteredProducts.map((product, index) => {
-              const quantity = cart[product.id] || 0;
-              const unitName = (unitTranslations && unitTranslations[product.unit_type]) || product.unit_type;
-              
-              return (
-                <div 
-                  key={product.id} 
-                  className="product-card glass animate-slide-up"
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  {product.image_url && (
-                    <div className="product-image" style={{ width: '100%', height: '200px', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', marginBottom: '10px' }}>
-                      <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                  )}
-                  <div className="product-info">
-                    <div className="product-header">
-                      <h3>{product.name}</h3>
-                      {product.is_offer && (
-                        <span className="offer-badge" style={{ backgroundColor: product.offer_color || 'var(--accent-color)' }}>
-                          {product.offer_label}
-                        </span>
-                      )}
-                    </div>
-                    <div className="product-price">
-                      <span className="price-value">{Number(product.current_price).toFixed(2)} ريال</span>
-                      <span className="price-unit">/ {unitName}</span>
-                    </div>
+            {offerProducts.map((product, index) => (
+              <Link 
+                href={`/product/${product.id}`}
+                key={product.id} 
+                className="product-card glass animate-slide-up"
+                style={{ animationDelay: `${index * 0.05}s`, textDecoration: 'none' }}
+              >
+                <div className="product-info">
+                  <div className="product-header">
+                    <h3>{product.name}</h3>
+                    <span className="offer-badge" style={{ backgroundColor: product.offer_color || 'var(--error-color)' }}>
+                      {product.offer_label}
+                    </span>
                   </div>
-
-                  <div className="product-actions">
-                    {quantity === 0 ? (
-                      <button className="add-to-cart-btn" onClick={(e) => handleAddToCart(e, product.id, 1)}>
-                        <Plus size={18} />
-                        <span>إضافة للسلة</span>
-                      </button>
-                    ) : (
-                      <div className="quantity-selector">
-                        <button className="qty-btn" onClick={(e) => handleAddToCart(e, product.id, -1)}>
-                          <Minus size={18} />
-                        </button>
-                        <span className="qty-value">{quantity}</span>
-                        <button className="qty-btn" onClick={(e) => handleAddToCart(e, product.id, 1)}>
-                          <Plus size={18} />
-                        </button>
-                      </div>
-                    )}
+                  <div className="product-price">
+                    <span className="price-value">${Number(product.current_price).toFixed(2)}</span>
+                    <span className="price-unit">/ {product.unit_type}</span>
                   </div>
                 </div>
-              );
-            })}
+              </Link>
+            ))}
           </div>
-        )
+        </>
       )}
     </div>
   );
