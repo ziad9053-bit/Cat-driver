@@ -84,7 +84,7 @@ export function CartProvider({ children }) {
       }
     };
     
-    fetchProducts();
+    fetchAll();
     fetchUnits();
 
     // Listen to changes on the products table to update prices instantly
