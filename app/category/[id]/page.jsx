@@ -123,7 +123,7 @@ export default function CategoryPage({ params }) {
               const isSelected = activeSubcategoryId === sub.id;
               
               return (
-                <div key={sub.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div key={sub.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 0 }}>
                     <div 
                       className={`branch-card glass ${isSelected ? 'selected' : ''}`}
                       onClick={() => handleBranchClick(isSelected ? null : sub.id)}
@@ -137,7 +137,7 @@ export default function CategoryPage({ params }) {
                   
                   {/* Render Products Slider if this branch is selected */}
                   {isSelected && (
-                    <div className="branch-products animate-slide-up" style={{ padding: '0 5px' }}>
+                    <div className="branch-products animate-slide-up" style={{ padding: '0 5px', minWidth: 0 }}>
                       <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h2 className="section-title">
                           <Tag size={20} color="var(--primary-color)" />
