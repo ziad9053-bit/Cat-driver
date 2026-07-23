@@ -2,6 +2,7 @@ import './globals.css';
 import { CartProvider } from '../context/CartContext';
 import { SettingsProvider } from '../context/SettingsContext';
 import Navbar from './components/Navbar';
+import FloatingBackButton from './components/FloatingBackButton';
 
 export const metadata = {
   title: 'مخزن الجوف للخضروات | أجود أنواع الخضار والفواكه والطازجة',
@@ -47,6 +48,7 @@ export default function RootLayout({ children }) {
           <CartProvider>
             <div className="app-layout">
               <Navbar />
+              <FloatingBackButton />
               <main className="container">
                 {children}
               </main>
