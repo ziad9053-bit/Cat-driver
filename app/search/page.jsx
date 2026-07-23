@@ -2,10 +2,10 @@
 import { useSearchParams } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Suspense } from 'react';
 import { ArrowLeft, SearchX, SlidersHorizontal } from 'lucide-react';
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
   const { products, loading } = useCart();
@@ -102,5 +102,13 @@ export default function SearchPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="page-wrapper"><div className="glass loading-card">جاري التحميل...</div></div>}>
+      <SearchContent />
+    </Suspense>
   );
 }
