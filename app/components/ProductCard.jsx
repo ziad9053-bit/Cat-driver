@@ -55,7 +55,6 @@ export default function ProductCard({ product }) {
           ) : (
             <button className="add-btn" onClick={handleAdd}>
               <ShoppingCart size={18} />
-              <span>إضافة</span>
             </button>
           )}
         </div>

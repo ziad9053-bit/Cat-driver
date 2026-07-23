@@ -290,8 +290,8 @@
 }
 
 .product-name {
-  font-size: 1.1rem;
-  margin-bottom: 8px;
+  font-size: 0.88rem; /* Reduced by ~20% from 1.1rem */
+  margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -301,7 +301,18 @@
   display: flex;
   align-items: baseline;
   gap: 4px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+}
+
+.price-value {
+  font-size: 0.85rem; /* Reduced by ~40% to make room */
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.price-unit {
+  font-size: 0.7rem;
+  color: #999;
 }
 
 .card-actions {
