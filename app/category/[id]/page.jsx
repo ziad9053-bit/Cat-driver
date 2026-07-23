@@ -124,17 +124,16 @@ export default function CategoryPage({ params }) {
               
               return (
                 <div key={sub.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {!isSelected && (
                     <div 
-                      className="branch-card glass"
-                      onClick={() => handleBranchClick(sub.id)}
+                      className={`branch-card glass ${isSelected ? 'selected' : ''}`}
+                      onClick={() => handleBranchClick(isSelected ? null : sub.id)}
+                      style={isSelected ? { borderColor: 'var(--primary-color)', boxShadow: '0 5px 15px rgba(212,175,55,0.15)' } : {}}
                     >
                       <div className="branch-img" style={{ backgroundImage: `url(${imageUrl})` }}></div>
                       <div className="branch-info">
                         <h3>{sub.name}</h3>
                       </div>
                     </div>
-                  )}
                   
                   {/* Render Products Slider if this branch is selected */}
                   {isSelected && (
@@ -142,14 +141,8 @@ export default function CategoryPage({ params }) {
                       <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h2 className="section-title">
                           <Tag size={20} color="var(--primary-color)" />
-                          {sub.name}
+                          منتجات الفرع
                         </h2>
-                        <button 
-                          onClick={() => handleBranchClick(null)}
-                          style={{ background: 'transparent', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '5px 12px', borderRadius: '15px', cursor: 'pointer', fontSize: '0.9rem' }}
-                        >
-                          إغلاق ✕
-                        </button>
                       </div>
                       
                       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>

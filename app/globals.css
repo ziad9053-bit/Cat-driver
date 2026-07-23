@@ -51,6 +51,7 @@
 }
 
 body {
+  overflow-x: hidden;
   font-family: 'Cairo', 'Outfit', sans-serif;
   background-color: var(--background-color);
   color: var(--text-primary);
