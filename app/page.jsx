@@ -25,6 +25,9 @@ export default function Home() {
     return products.filter(p => p.category_id === mainCatId || subCatIds.includes(p.category_id));
   };
 
+  const mainCategories = categories.filter(c => c.parent_id === null);
+  const offerProducts = products.filter(p => p.is_offer);
+
   return (
     <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
       
