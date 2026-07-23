@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Tag, Grid } from 'lucide-react';
 import './catalog.css';
 import Image from 'next/image';
+import ProductCard from './components/ProductCard';
 
 export default function Home() {
   const { products, categories, loading } = useCart();
@@ -19,75 +20,69 @@ export default function Home() {
     );
   }
 
-  const mainCategories = categories.filter(c => c.parent_id === null);
-  const offerProducts = products.filter(p => p.is_offer);
+  const getProductsForCategory = (mainCatId) => {
+    const subCatIds = categories.filter(c => c.parent_id === mainCatId).map(c => c.id);
+    return products.filter(p => p.category_id === mainCatId || subCatIds.includes(p.category_id));
+  };
 
   return (
-    <div className="page-wrapper animate-fade-in">
-      <header className="page-header">
-        <h1>متجر فريشلي الشامل</h1>
-        <p>كل ما تحتاجه لمنزلك في مكان واحد.</p>
-      </header>
+    <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
+      
+      {/* Hero Banner Slider */}
+      <div className="hero-banner glass animate-slide-up">
+        <div className="hero-content">
+          <h1>طازج ومقرمش، لباب بيتك!</h1>
+          <p>اطلب الآن الخضار والفواكه الطازجة، واحصل على توصيل سريع مع فريشلي.</p>
+          <div className="hero-tags">
+            <span className="hero-tag">توصيل سريع</span>
+            <span className="hero-tag">جودة مضمونة</span>
+          </div>
+        </div>
+      </div>
 
-      {/* الأقسام الرئيسية */}
-      <h2 className="section-title">
-        <Grid size={24} />
-        تصفح الأقسام
-      </h2>
-      <div className="categories-grid">
-        {mainCategories.map((category, index) => (
-          <Link 
-            href={`/category/${category.id}`} 
-            key={category.id} 
-            className="category-card animate-slide-up"
-            style={{ animationDelay: `${index * 0.05}s` }}
-          >
-            <div className="category-image-wrapper">
-              <Image 
-                src={category.image_url || 'https://via.placeholder.com/400?text=قسم'} 
-                alt={category.name}
-                fill
-                className="category-image"
-              />
+      {/* عرض المنتجات حسب الأقسام (شريط أفقي) */}
+      <div className="categories-sections">
+        {mainCategories.map((category, index) => {
+          const catProducts = getProductsForCategory(category.id);
+          if (catProducts.length === 0) return null;
+
+          return (
+            <div key={category.id} className="category-section animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+              <div className="section-header">
+                <h2 className="section-title">
+                  <Grid size={24} color="var(--primary-color)" />
+                  {category.name}
+                </h2>
+                <Link href={`/category/${category.id}`} className="view-all-btn">
+                  عرض الكل
+                </Link>
+              </div>
+              
+              <div className="products-slider">
+                {catProducts.map(product => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
             </div>
-            <div className="category-title">
-              {category.name}
-            </div>
-          </Link>
-        ))}
+          );
+        })}
       </div>
 
       {/* قسم العروض الخاصة */}
       {offerProducts.length > 0 && (
-        <>
-          <h2 className="section-title">
-            <Tag size={24} color="var(--error-color)" />
-            عروض اليوم
-          </h2>
-          <div className="products-grid">
-            {offerProducts.map((product, index) => (
-              <Link 
-                href={`/product/${product.id}`}
-                key={product.id} 
-                className="product-card glass animate-slide-up"
-                style={{ animationDelay: `${index * 0.05}s`, textDecoration: 'none' }}
-              >
-                <div className="product-info">
-                  <div className="product-header">
-                    <h3>{product.name}</h3>
-                    <span className="offer-badge" style={{ backgroundColor: product.offer_color || 'var(--error-color)' }}>
-                      {product.offer_label}
-                    </span>
-                  </div>
-                  <div className="product-price">
-                    <span className="price-value">${Number(product.current_price).toFixed(2)}</span>
-                    <span className="price-unit">/ {product.weight || 'حبة'}</span>
-                  </div>
-                </div>
-              </Link>
+        <div className="category-section animate-slide-up" style={{ animationDelay: '0.5s', marginTop: '30px' }}>
+          <div className="section-header">
+            <h2 className="section-title">
+              <Tag size={24} color="var(--error-color)" />
+              عروض اليوم
+            </h2>
+          </div>
+          <div className="products-slider">
+            {offerProducts.map(product => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
