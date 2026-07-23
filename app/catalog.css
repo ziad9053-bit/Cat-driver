@@ -257,22 +257,22 @@
 }
 
 .products-slider .product-card {
-  min-width: 220px;
-  max-width: 220px;
+  min-width: 130px;
+  max-width: 130px;
   scroll-snap-align: start;
   flex: 0 0 auto;
 }
 
 /* Updated Product Card Styles */
 .product-image-container {
-  height: 120px;
+  height: 90px;
   border-radius: 12px;
   background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2));
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   overflow: hidden;
 }
 

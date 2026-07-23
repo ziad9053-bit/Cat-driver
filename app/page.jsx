@@ -33,6 +33,40 @@ export default function Home() {
       
 
 
+      {/* قسم عروض اليوم */}
+      {offerProducts.length > 0 && (
+        <div className="category-section animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <div className="section-header">
+            <h2 className="section-title">
+              <Tag size={24} color="var(--error-color)" />
+              عروض اليوم
+            </h2>
+          </div>
+          <div className="products-slider">
+            {offerProducts.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* قسم العروض الأسبوعية (مؤقتاً نفس العروض كأمثلة) */}
+      {offerProducts.length > 0 && (
+        <div className="category-section animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <div className="section-header">
+            <h2 className="section-title">
+              <Tag size={24} color="var(--primary-color)" />
+              العروض الأسبوعية
+            </h2>
+          </div>
+          <div className="products-slider">
+            {offerProducts.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* عرض المنتجات حسب الأقسام (شريط أفقي) */}
       <div className="categories-sections">
         {mainCategories.map((category, index) => {
@@ -40,7 +74,7 @@ export default function Home() {
           if (catProducts.length === 0) return null;
 
           return (
-            <div key={category.id} className="category-section animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+            <div key={category.id} className="category-section animate-slide-up" style={{ animationDelay: `${(index + 3) * 0.1}s` }}>
               <div className="section-header">
                 <h2 className="section-title">
                   <Grid size={24} color="var(--primary-color)" />
@@ -61,22 +95,6 @@ export default function Home() {
         })}
       </div>
 
-      {/* قسم العروض الخاصة */}
-      {offerProducts.length > 0 && (
-        <div className="category-section animate-slide-up" style={{ animationDelay: '0.5s', marginTop: '30px' }}>
-          <div className="section-header">
-            <h2 className="section-title">
-              <Tag size={24} color="var(--error-color)" />
-              عروض اليوم
-            </h2>
-          </div>
-          <div className="products-slider">
-            {offerProducts.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

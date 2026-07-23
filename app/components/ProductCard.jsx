@@ -24,10 +24,12 @@ export default function ProductCard({ product }) {
   return (
     <Link href={`/product/${product.id}`} className="product-card glass">
       <div className="product-image-container">
-        {/* Placeholder for product image if we have one, else a gradient box */}
-        <div className="product-img-placeholder">
-          {product.name.charAt(0)}
-        </div>
+        <Image 
+          src={`https://via.placeholder.com/200?text=${encodeURIComponent(product.name)}`} 
+          alt={product.name} 
+          fill
+          style={{ objectFit: 'cover' }}
+        />
         {product.is_offer && (
           <span className="offer-badge" style={{ backgroundColor: product.offer_color || 'var(--error-color)' }}>
             {product.offer_label}
