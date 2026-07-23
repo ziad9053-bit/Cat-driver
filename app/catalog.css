@@ -251,7 +251,7 @@
   padding-top: 5px;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none;  /* IE and Edge */
-  scroll-snap-type: x mandatory;
+  
 }
 
 .products-slider::-webkit-scrollbar {
@@ -261,7 +261,7 @@
 .products-slider .product-card {
   min-width: 130px;
   max-width: 130px;
-  scroll-snap-align: start;
+  
   flex: 0 0 auto;
 }
 
