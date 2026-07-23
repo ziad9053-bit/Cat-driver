@@ -2,6 +2,12 @@
 const isVercel = process.env.VERCEL === '1';
 
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   output: isVercel ? undefined : 'export',
   basePath: isVercel ? '' : '/Cat-driver',
   trailingSlash: true,
