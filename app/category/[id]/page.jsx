@@ -76,120 +76,100 @@ function CategoryPageContent({ params }) {
         </div>
       </div>
 
-      {/* شريط الأقسام الفرعية العلوية إذا كان هناك فرع محدد */}
-      {subCategories.length > 0 && activeSubcategoryId && (
-        <div className="subcategories-scroll" style={{ marginTop: '20px' }}>
-          <button
-            className={`subcategory-pill ${!activeSubcategoryId ? 'active' : ''}`}
-            onClick={() => router.push(`/category/${categoryId}`)}
-          >
-            كل الفروع
-          </button>
-          {subCategories.map(sub => (
-            <button
-              key={sub.id}
-              className={`subcategory-pill ${activeSubcategoryId === sub.id ? 'active' : ''}`}
-              onClick={() => router.push(`/category/${categoryId}?branch=${sub.id}`)}
-            >
-              {sub.name}
-            </button>
-          ))}
+            {/* عروض القسم الحصرية */}
+      {categoryOffers.length > 0 && (
+        <div className="category-section animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <div className="section-header">
+            <h2 className="section-title">
+              <Tag size={24} color="var(--error-color)" />
+              عروض {mainCategory?.name}
+            </h2>
+          </div>
+          <div className="products-slider">
+            {categoryOffers.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
         </div>
       )}
 
-      {showBranchesView ? (
-        <>
-          {/* عروض القسم الحصرية */}
-          {categoryOffers.length > 0 && (
-            <div className="category-section animate-slide-up" style={{ animationDelay: '0.1s' }}>
-              <div className="section-header">
-                <h2 className="section-title">
-                  <Tag size={24} color="var(--error-color)" />
-                  عروض {mainCategory?.name}
-                </h2>
-              </div>
-              <div className="products-slider">
-                {categoryOffers.map(product => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* الفروع (Branches) */}
-          <div className="category-section animate-slide-up" style={{ animationDelay: '0.2s', marginTop: '20px' }}>
-            <div className="branches-grid">
-              {subCategories.map((sub, index) => {
-                const imageUrl = sub.image_url || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=800';
-                return (
+      {/* الفروع (Branches Accordion) */}
+      {subCategories.length > 0 && (
+        <div className="category-section animate-slide-up" style={{ animationDelay: '0.2s', marginTop: '20px' }}>
+          <div className="branches-grid">
+            {subCategories.map((sub, index) => {
+              const imageUrl = sub.image_url || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=800';
+              const isSelected = activeSubcategoryId === sub.id;
+              
+              return (
+                <div key={sub.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div 
-                    key={sub.id} 
-                    className="branch-card glass"
-                    onClick={() => router.push(`/category/${categoryId}?branch=${sub.id}`)}
+                    className={`branch-card glass ${isSelected ? 'active' : ''}`}
+                    onClick={() => router.push(isSelected ? `/category/${categoryId}` : `/category/${categoryId}?branch=${sub.id}`)}
+                    style={{ border: isSelected ? '1px solid var(--primary-color)' : '' }}
                   >
                     <div className="branch-img" style={{ backgroundImage: `url(${imageUrl})` }}></div>
                     <div className="branch-info">
                       <h3>{sub.name}</h3>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-          
-          {/* أحدث المنتجات في القسم (منتجات مختارة) */}
-          <div className="category-section animate-slide-up" style={{ animationDelay: '0.3s', marginTop: '30px' }}>
-            <div className="section-header">
-              <h2 className="section-title">
-                <ShoppingBag size={24} color="var(--text-primary)" />
-                منتجات مختارة
-              </h2>
-            </div>
-            <div className="products-grid">
-              {categoryProducts.slice(0, 10).map((product, index) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          {/* عرض المنتجات لفرع محدد */}
-          {/* شريط الترتيب */}
-          {categoryProducts.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px', padding: '0 10px', marginTop: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface-color)', padding: '5px 15px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <SlidersHorizontal size={16} color="var(--primary-color)" />
-                <select 
-                  value={sortBy} 
-                  onChange={(e) => setSortBy(e.target.value)}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none', cursor: 'pointer' }}
-                >
-                  <option value="default">الترتيب الافتراضي</option>
-                  <option value="price_asc">الأقل سعراً</option>
-                  <option value="price_desc">الأعلى سعراً</option>
-                  <option value="name_asc">الاسم (أ - ي)</option>
-                </select>
-              </div>
-            </div>
-          )}
+                  
+                  {/* Render Products Slider if this branch is selected */}
+                  {isSelected && (
+                    <div className="branch-products animate-slide-up" style={{ padding: '0 5px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--surface-color)', padding: '4px 10px', borderRadius: '15px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '0.85rem' }}>
+                          <SlidersHorizontal size={14} color="var(--primary-color)" />
+                          <select 
+                            value={sortBy} 
+                            onChange={(e) => setSortBy(e.target.value)}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
+                          >
+                            <option value="default">الترتيب</option>
+                            <option value="price_asc">الأقل سعراً</option>
+                            <option value="price_desc">الأعلى سعراً</option>
+                            <option value="name_asc">الاسم (أ - ي)</option>
+                          </select>
+                        </div>
+                      </div>
 
-          {/* المنتجات */}
-          {categoryProducts.length === 0 ? (
-            <div className="empty-state glass" style={{ marginTop: '20px' }}>
-              <ShoppingBag size={48} className="empty-icon" />
-              <p>لا توجد منتجات حالياً في هذا القسم.</p>
-            </div>
-          ) : (
-            <div className="products-grid">
-              {categoryProducts.map((product, index) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
-        </>
+                      {categoryProducts.length === 0 ? (
+                         <div className="empty-state glass" style={{ padding: '20px' }}>
+                           <p style={{ margin: 0 }}>لا توجد منتجات حالياً في هذا الفرع.</p>
+                         </div>
+                      ) : (
+                         <div className="products-slider" style={{ paddingBottom: '10px' }}>
+                           {categoryProducts.map(product => (
+                             <ProductCard key={product.id} product={product} />
+                           ))}
+                         </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
-        <div style={{ height: '60px' }}></div>
+      
+      {/* أحدث المنتجات في القسم (منتجات مختارة) - تظهر فقط في حال لم يتم اختيار فرع لتقليل الزحام */}
+      {!activeSubcategoryId && categoryProducts.length > 0 && (
+        <div className="category-section animate-slide-up" style={{ animationDelay: '0.3s', marginTop: '30px' }}>
+          <div className="section-header">
+            <h2 className="section-title">
+              <ShoppingBag size={24} color="var(--text-primary)" />
+              منتجات مختارة
+            </h2>
+          </div>
+          <div className="products-grid">
+            {categoryProducts.slice(0, 10).map((product, index) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </div>
+      )}
+      <div style={{ height: '60px' }}></div>
     </div>
   );
 }
