@@ -1,25 +1,46 @@
 'use client';
 
-import React, { useMemo, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCart } from '../../../context/CartContext';
 import Link from 'next/link';
 import { ArrowLeft, ShoppingBag, SlidersHorizontal, Tag } from 'lucide-react';
 import ProductCard from '../../components/ProductCard';
 
-function CategoryPageContent({ params }) {
+export default function CategoryPage({ params }) {
   const categoryId = params.id;
   const { categories, products, loading } = useCart();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const activeSubcategoryId = searchParams.get('branch');
-  // using query parameter to set sort later if needed, but keeping it local for now is fine
-  const sortBy = 'default';
+  
+  const [activeSubcategoryId, setActiveSubcategoryId] = useState(null);
+  const [sortBy, setSortBy] = useState('default');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      setActiveSubcategoryId(params.get('branch'));
+    }
+
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      setActiveSubcategoryId(params.get('branch'));
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handleBranchClick = (id) => {
+    setActiveSubcategoryId(id);
+    if (typeof window !== 'undefined') {
+      const newUrl = id ? window.location.pathname + '?branch=' + id : window.location.pathname;
+      window.history.pushState(null, '', newUrl);
+    }
+  };
 
   const mainCategory = categories.find(c => c.id === categoryId);
   const subCategories = categories.filter(c => c.parent_id === categoryId);
   
-  const showBranchesView = subCategories.length > 0 && !activeSubcategoryId;
   const displayCategoryId = activeSubcategoryId || categoryId;
   
   // All products belonging to this main category and its subcategories
@@ -39,7 +60,7 @@ function CategoryPageContent({ params }) {
 
   // Products to display (either all for main cat, or filtered for subcat)
   const categoryProducts = useMemo(() => {
-    if (showBranchesView) return allCategoryProducts; 
+    if (!activeSubcategoryId) return allCategoryProducts; 
     
     let results = products.filter(p => {
       const belongs = p.category_ids?.includes(displayCategoryId) || p.category_id === displayCategoryId;
@@ -118,6 +139,19 @@ function CategoryPageContent({ params }) {
                   {/* Render Products Slider if this branch is selected */}
                   {isSelected && (
                     <div className="branch-products animate-slide-up" style={{ padding: '0 5px' }}>
+                      <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h2 className="section-title">
+                          <Tag size={20} color="var(--primary-color)" />
+                          {sub.name}
+                        </h2>
+                        <button 
+                          onClick={() => handleBranchClick(null)}
+                          style={{ background: 'transparent', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '5px 12px', borderRadius: '15px', cursor: 'pointer', fontSize: '0.9rem' }}
+                        >
+                          إغلاق ✕
+                        </button>
+                      </div>
+                      
                       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--surface-color)', padding: '4px 10px', borderRadius: '15px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '0.85rem' }}>
                           <SlidersHorizontal size={14} color="var(--primary-color)" />
@@ -172,13 +206,5 @@ function CategoryPageContent({ params }) {
       )}
       <div style={{ height: '60px' }}></div>
     </div>
-  );
-}
-
-export default function CategoryPage({ params }) {
-  return (
-    <Suspense fallback={<div className="page-wrapper"><div className="glass loading-card">جاري التحميل...</div></div>}>
-      <CategoryPageContent params={params} />
-    </Suspense>
   );
 }
