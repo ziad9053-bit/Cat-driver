@@ -31,17 +31,7 @@ export default function Home() {
   return (
     <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
       
-      {/* Hero Banner Slider */}
-      <div className="hero-banner glass animate-slide-up">
-        <div className="hero-content">
-          <h1>طازج ومقرمش، لباب بيتك!</h1>
-          <p>اطلب الآن الخضار والفواكه الطازجة، واحصل على توصيل سريع مع فريشلي.</p>
-          <div className="hero-tags">
-            <span className="hero-tag">توصيل سريع</span>
-            <span className="hero-tag">جودة مضمونة</span>
-          </div>
-        </div>
-      </div>
+
 
       {/* عرض المنتجات حسب الأقسام (شريط أفقي) */}
       <div className="categories-sections">
