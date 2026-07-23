@@ -21,7 +21,7 @@ export default function ExcelImporter({ onImportSuccess }) {
   });
   
   const [isImporting, setIsImporting] = useState(false);
-  const [importStats, setImportStats] = useState({ total: 0, success: 0, failed: 0 });
+  const [importStats, setImportStats] = useState({ total: 0, inserted: 0, updated: 0, failed: 0 });
 
   useEffect(() => {
     // Fetch categories to match names
@@ -79,44 +79,90 @@ export default function ExcelImporter({ onImportSuccess }) {
     setIsImporting(true);
     setStep(3);
     
-    let successCount = 0;
+    let insertedCount = 0;
+    let updatedCount = 0;
     let failedCount = 0;
     
+    // --- 1. Auto-create missing categories ---
+    let currentCategories = [...categories];
+    if (mappings.category_name) {
+      const uniqueCategoryNames = [...new Set(data.map(r => r[mappings.category_name]).filter(c => c))];
+      const newCategories = [];
+      
+      for (const catName of uniqueCategoryNames) {
+        const catStr = String(catName).trim();
+        const exists = currentCategories.find(c => c.name.toLowerCase() === catStr.toLowerCase());
+        if (!exists && catStr !== '') {
+          newCategories.push({ name: catStr });
+        }
+      }
+      
+      if (newCategories.length > 0) {
+        const { data: insertedCats, error: catErr } = await supabase.from('categories').insert(newCategories).select();
+        if (!catErr && insertedCats) {
+          currentCategories = [...currentCategories, ...insertedCats];
+          setCategories(currentCategories);
+        }
+      }
+    }
+    
+    // --- 2. Fetch existing products for UPSERT matching ---
+    // Fetch all products (just id and name) to check if they already exist
+    const { data: existingProducts } = await supabase.from('products').select('id, name');
+    const existingMap = new Map();
+    if (existingProducts) {
+      existingProducts.forEach(p => existingMap.set(p.name.toLowerCase().trim(), p.id));
+    }
+
     // Process in chunks to avoid overwhelming the DB
     const CHUNK_SIZE = 100;
     
     // Prepare data
     const formattedProducts = data.map(row => {
-      // Find category ID if mapped
+      // Find category ID
       let category_id = null;
       if (mappings.category_name && row[mappings.category_name]) {
-        const catName = row[mappings.category_name].toString().trim().toLowerCase();
-        const foundCat = categories.find(c => c.name.toLowerCase() === catName);
+        const catStr = String(row[mappings.category_name]).trim().toLowerCase();
+        const foundCat = currentCategories.find(c => c.name.toLowerCase() === catStr);
         if (foundCat) category_id = foundCat.id;
       }
       
-      return {
-        name: String(row[mappings.name] || '').trim(),
+      const pName = String(row[mappings.name] || '').trim();
+      const payload = {
+        name: pName,
         current_price: parseFloat(row[mappings.current_price]) || 0,
         stock_quantity: parseInt(row[mappings.stock_quantity]) || 100,
         weight: mappings.weight ? String(row[mappings.weight] || '').trim() : 'حبة',
         category_id: category_id,
         is_active: true
       };
-    }).filter(p => p.name && p.current_price > 0); // basic validation
+      
+      // If product exists, add its ID to trigger an update (upsert)
+      const existingId = existingMap.get(pName.toLowerCase());
+      if (existingId) {
+        payload.id = existingId;
+      }
+      
+      return payload;
+    }).filter(p => p.name && p.current_price > 0);
     
     for (let i = 0; i < formattedProducts.length; i += CHUNK_SIZE) {
       const chunk = formattedProducts.slice(i, i + CHUNK_SIZE);
-      const { error } = await supabase.from('products').insert(chunk);
+      // Upsert: matches on ID if provided, otherwise inserts.
+      const { data: upsertedData, error } = await supabase.from('products').upsert(chunk).select('id');
       if (error) {
         console.error('Import Error:', error);
         failedCount += chunk.length;
       } else {
-        successCount += chunk.length;
+        // Count how many were updates vs inserts based on whether chunk items had .id
+        chunk.forEach(item => {
+          if (item.id) updatedCount++;
+          else insertedCount++;
+        });
       }
     }
     
-    setImportStats({ total: formattedProducts.length, success: successCount, failed: failedCount });
+    setImportStats({ total: formattedProducts.length, inserted: insertedCount, updated: updatedCount, failed: failedCount });
     setStep(4);
     setIsImporting(false);
     if (onImportSuccess) onImportSuccess();
@@ -209,10 +255,14 @@ export default function ExcelImporter({ onImportSuccess }) {
               <CheckCircle size={64} style={{ color: 'var(--success-color)', margin: '0 auto 15px' }} />
               <h3 style={{ color: 'var(--success-color)' }}>تم الانتهاء من الاستيراد!</h3>
               
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', margin: '20px 0' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', margin: '20px 0', flexWrap: 'wrap' }}>
                 <div style={{ background: 'rgba(76, 175, 80, 0.1)', padding: '15px', borderRadius: '8px', minWidth: '100px' }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--success-color)' }}>{importStats.success}</div>
-                  <div style={{ fontSize: '0.85rem' }}>تمت إضافتها</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--success-color)' }}>{importStats.inserted}</div>
+                  <div style={{ fontSize: '0.85rem' }}>منتج جديد</div>
+                </div>
+                <div style={{ background: 'rgba(33, 150, 243, 0.1)', padding: '15px', borderRadius: '8px', minWidth: '100px' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2196f3' }}>{importStats.updated}</div>
+                  <div style={{ fontSize: '0.85rem' }}>تم تحديثه</div>
                 </div>
                 {importStats.failed > 0 && (
                   <div style={{ background: 'rgba(255, 77, 79, 0.1)', padding: '15px', borderRadius: '8px', minWidth: '100px' }}>
