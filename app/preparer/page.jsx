@@ -306,9 +306,7 @@ export default function PreparerDashboard() {
               ) : (
                 <div className="items-list">
                   {orderItems.map(item => {
-                    const unitName = item.products?.unit_type
-                      ? ((unitTranslations && unitTranslations[item.products.unit_type]) || item.products.unit_type)
-                      : 'وحدة';
+                    const unitName = item.products?.weight || item.products?.unit_type || 'حبة';
                     const displayQty = item.quantity !== undefined && item.quantity !== null ? Number(item.quantity) : '';
 
                     return (

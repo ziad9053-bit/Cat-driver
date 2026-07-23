@@ -6,7 +6,7 @@ import { supabase } from '../../../lib/supabase';
 
 export default function WorkerLogin() {
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('Driver');
+  const [role, setRole] = useState('Driver1');
   const [toast, setToast] = useState(null);
   const router = useRouter();
 
@@ -17,7 +17,10 @@ export default function WorkerLogin() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const email = role === 'Preparer' ? 'preparer@catdriver.com' : 'driver@catdriver.com';
+    let email = 'preparer@catdriver.com';
+    if (role === 'Driver1') email = 'driver1@catdriver.com';
+    if (role === 'Driver2') email = 'driver2@catdriver.com';
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
@@ -57,7 +60,8 @@ export default function WorkerLogin() {
             <label style={{ display: 'block', marginBottom: '5px', color: 'var(--text-secondary)' }}>تسجيل الدخول كـ</label>
             <select value={role} onChange={(e) => setRole(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--text-tertiary)', background: 'var(--surface-color)', color: 'var(--text-primary)' }}>
               <option value="Preparer">عامل تحضير</option>
-              <option value="Driver">سائق توصيل</option>
+              <option value="Driver1">سائق توصيل (1)</option>
+              <option value="Driver2">سائق توصيل (2)</option>
             </select>
           </div>
           <div>

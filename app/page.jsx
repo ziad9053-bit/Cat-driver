@@ -81,7 +81,7 @@ export default function Home() {
                   </div>
                   <div className="product-price">
                     <span className="price-value">${Number(product.current_price).toFixed(2)}</span>
-                    <span className="price-unit">/ {product.unit_type}</span>
+                    <span className="price-unit">/ {product.weight || 'حبة'}</span>
                   </div>
                 </div>
               </Link>

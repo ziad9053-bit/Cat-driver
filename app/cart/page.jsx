@@ -251,7 +251,7 @@ export default function CartCheckout() {
           ) : (
             <div className="items-list">
               {cartItems.map(item => {
-                const unitName = (unitTranslations && unitTranslations[item.unit_type]) || item.unit_type;
+                const unitName = item.weight || item.unit_type || '';
 
                 return (
                 <div key={item.product_id} className="cart-item glass">

@@ -48,7 +48,7 @@ function OrderTrackingContent() {
         // 2. Fetch Order Items
         const { data: itemsData } = await supabase
           .from('order_items')
-          .select('*, products(name, image_url, unit_type)')
+          .select('*, products(name, image_url, weight, unit_type)')
           .eq('order_id', id);
           
         if (itemsData) setItems(itemsData);
@@ -218,7 +218,7 @@ function OrderTrackingContent() {
         <h2 style={{ marginBottom: '20px', color: 'var(--primary-color)', fontSize: '1.4rem' }}>تفاصيل المشتريات ({items.length})</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {items.map(item => {
-            const unitName = item.products?.unit_type ? ((unitTranslations && unitTranslations[item.products.unit_type]) || item.products.unit_type) : 'وحدة';
+            const unitName = item.products?.weight || item.products?.unit_type || 'حبة';
             
             return (
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>

@@ -59,7 +59,7 @@ export default function ProductDetailsPage({ params }) {
         
         <div className="product-detail-price-row">
           <div className="product-detail-price">
-            ${Number(product.current_price).toFixed(2)} <span style={{fontSize: '1.2rem', color: 'var(--text-secondary)'}}>/ {product.unit_type}</span>
+            ${Number(product.current_price).toFixed(2)} <span style={{fontSize: '1.2rem', color: 'var(--text-secondary)'}}>/ {product.weight || 'حبة'}</span>
           </div>
           {product.weight && (
             <div className="product-detail-weight">

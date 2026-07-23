@@ -37,7 +37,7 @@ function InvoiceContent() {
           // 2. Fetch Items
           const { data: itemsData } = await supabase
             .from('order_items')
-            .select('*, products(name, unit_type)')
+            .select('*, products(name, weight, unit_type)')
             .eq('order_id', id);
             
           if (itemsData) setItems(itemsData);
@@ -122,7 +122,7 @@ function InvoiceContent() {
             <span>الإجمالي</span>
           </div>
           {items.map(item => {
-            const unitName = item.products?.unit_type ? ((unitTranslations && unitTranslations[item.products.unit_type]) || item.products.unit_type) : 'وحدة';
+            const unitName = item.products?.weight || item.products?.unit_type || 'حبة';
             const itemTotal = Number(item.price_at_purchase * item.quantity).toFixed(2);
             
             return (
