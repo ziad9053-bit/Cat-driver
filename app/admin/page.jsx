@@ -4,8 +4,9 @@ import './admin.css';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { convertToWebP } from '../../lib/image-utils';
-import { Plus, Camera, Image as ImageIcon, CheckCircle, Package, Edit, Trash2, X, Grid, Settings, ListTree } from 'lucide-react';
+import { Plus, Camera, Image as ImageIcon, CheckCircle, Package, Edit, Trash2, X, Grid, Settings, ListTree, UploadCloud } from 'lucide-react';
 import SettingsTab from './SettingsTab';
+import ExcelImporter from './ExcelImporter';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
@@ -345,7 +346,7 @@ export default function AdminDashboard() {
         {/* ===================== ADD PRODUCT ===================== */}
         <div className="glass accordion-card">
           <div onClick={() => toggleAccordion('add-product')} style={{ padding: '20px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--primary-color)' }}>
-            <div style={{ display: 'flex', gap: '10px' }}><Plus /> {editingProductId ? 'تعديل منتج' : 'إضافة منتج جديد'}</div>
+            <div style={{ display: 'flex', gap: '10px' }}><Plus /> {editingProductId ? 'تعديل منتج' : 'إضافة منتج يدوي'}</div>
             <div>{activeAccordion === 'add-product' ? '▲' : '▼'}</div>
           </div>
           {activeAccordion === 'add-product' && (
@@ -433,6 +434,19 @@ export default function AdminDashboard() {
                   <button type="submit" className="btn-primary" disabled={isSubmitting}>{isSubmitting ? 'جاري الحفظ...' : 'حفظ المنتج'}</button>
                 </div>
               </form>
+            </div>
+          )}
+        </div>
+
+        {/* ===================== EXCEL IMPORTER ===================== */}
+        <div className="glass accordion-card">
+          <div onClick={() => toggleAccordion('excel-import')} style={{ padding: '20px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--primary-color)' }}>
+            <div style={{ display: 'flex', gap: '10px' }}><UploadCloud /> استيراد المنتجات (Excel/CSV)</div>
+            <div>{activeAccordion === 'excel-import' ? '▲' : '▼'}</div>
+          </div>
+          {activeAccordion === 'excel-import' && (
+            <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <ExcelImporter onImportSuccess={() => { fetchData(); setActiveAccordion('products'); }} />
             </div>
           )}
         </div>
