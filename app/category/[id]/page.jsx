@@ -55,7 +55,7 @@ function CategoryPageContent({ params }) {
     }
     
     return results;
-  }, [products, displayCategoryId, sortBy, showBranchesView, allCategoryProducts]);
+  }, [products, displayCategoryId, sortBy, activeSubcategoryId, allCategoryProducts]);
 
   if (loading) {
     return <div className="page-wrapper"><div className="glass loading-card">جاري التحميل...</div></div>;
@@ -103,16 +103,17 @@ function CategoryPageContent({ params }) {
               
               return (
                 <div key={sub.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div 
-                    className={`branch-card glass ${isSelected ? 'active' : ''}`}
-                    onClick={() => router.push(isSelected ? `/category/${categoryId}` : `/category/${categoryId}?branch=${sub.id}`, { scroll: false })}
-                    style={{ border: isSelected ? '1px solid var(--primary-color)' : '' }}
-                  >
-                    <div className="branch-img" style={{ backgroundImage: `url(${imageUrl})` }}></div>
-                    <div className="branch-info">
-                      <h3>{sub.name}</h3>
+                  {!isSelected && (
+                    <div 
+                      className="branch-card glass"
+                      onClick={() => handleBranchClick(sub.id)}
+                    >
+                      <div className="branch-img" style={{ backgroundImage: `url(${imageUrl})` }}></div>
+                      <div className="branch-info">
+                        <h3>{sub.name}</h3>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
                   {/* Render Products Slider if this branch is selected */}
                   {isSelected && (
