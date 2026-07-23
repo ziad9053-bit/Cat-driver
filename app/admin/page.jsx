@@ -4,13 +4,16 @@ import './admin.css';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { convertToWebP } from '../../lib/image-utils';
-import { Plus, Camera, Image as ImageIcon, CheckCircle, Package, Edit, Trash2, X, Grid, Settings, ListTree, UploadCloud } from 'lucide-react';
+import { Plus, Camera, Image as ImageIcon, CheckCircle, Package, Edit, Trash2, X, Grid, Settings, ListTree, UploadCloud, ShoppingBag, Clock, User, Phone, Eye } from 'lucide-react';
 import SettingsTab from './SettingsTab';
 import ExcelImporter from './ExcelImporter';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState(null);
+  const [orderDetailsItems, setOrderDetailsItems] = useState([]);
   
   const [activeAccordion, setActiveAccordion] = useState('products');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,12 +28,14 @@ export default function AdminDashboard() {
 
   // Fetch Data
   const fetchData = async () => {
-    const [prodRes, catRes] = await Promise.all([
+    const [prodRes, catRes, ordersRes] = await Promise.all([
       supabase.from('products').select('*').order('created_at', { ascending: false }),
-      supabase.from('categories').select('*')
+      supabase.from('categories').select('*'),
+      supabase.from('orders').select('*, users!orders_user_id_fkey(name, phone)').order('created_at', { ascending: false })
     ]);
     if (prodRes.data) setProducts(prodRes.data);
     if (catRes.data) setCategories(catRes.data);
+    if (ordersRes.data) setOrders(ordersRes.data);
   };
 
   useEffect(() => {
@@ -162,6 +167,25 @@ export default function AdminDashboard() {
     }
   };
 
+  // --- Orders Management ---
+  const viewOrderDetails = async (orderId) => {
+    if (selectedOrderForDetails === orderId) {
+      setSelectedOrderForDetails(null);
+      setOrderDetailsItems([]);
+      return;
+    }
+    setSelectedOrderForDetails(orderId);
+    const { data } = await supabase.from('order_items').select('*, products(*)').eq('order_id', orderId);
+    if (data) setOrderDetailsItems(data);
+  };
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    if (confirm(`هل أنت متأكد من تغيير حالة الطلب إلى ${newStatus}؟`)) {
+      await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+      fetchData();
+    }
+  };
+
 
   // --- Category Form State ---
   const [catForm, setCatForm] = useState({ name: '', parent_id: '' });
@@ -248,18 +272,107 @@ export default function AdminDashboard() {
             زيارة المتجر 🏠
           </Link>
         </div>
-        <div style={{ display: 'flex', gap: '15px' }}>
+         <div style={{ display: 'flex', gap: '15px' }}>
            <div className="glass" style={{ padding: '10px 20px', borderRadius: '8px', color: 'var(--primary-color)', fontWeight: 'bold' }}>
              المنتجات: {products.length}
            </div>
            <div className="glass" style={{ padding: '10px 20px', borderRadius: '8px', color: 'var(--primary-color)', fontWeight: 'bold' }}>
              الأقسام: {categories.length}
            </div>
+           <div className="glass" style={{ padding: '10px 20px', borderRadius: '8px', color: 'var(--primary-color)', fontWeight: 'bold' }}>
+             الطلبات: {orders.length}
+           </div>
         </div>
       </header>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
         
+        {/* ===================== ORDERS ===================== */}
+        <div className="glass accordion-card">
+          <div onClick={() => toggleAccordion('orders')} style={{ padding: '20px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--primary-color)' }}>
+            <div style={{ display: 'flex', gap: '10px' }}><ShoppingBag /> إدارة الطلبات</div>
+            <div>{activeAccordion === 'orders' ? '▲' : '▼'}</div>
+          </div>
+          {activeAccordion === 'orders' && (
+            <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              {orders.length === 0 ? (
+                <p style={{ color: 'var(--text-secondary)' }}>لا توجد طلبات مسجلة.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  {orders.map(order => (
+                    <div key={order.id} style={{ background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+                        <div>
+                          <h3 style={{ color: 'var(--primary-color)', margin: '0 0 5px 0' }}>طلب #{order.id.split('-')[0].toUpperCase()}</h3>
+                          <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                            <Clock size={14} style={{ verticalAlign: 'middle' }} /> {new Date(order.created_at).toLocaleString('ar-SA')}
+                          </p>
+                          <div style={{ marginTop: '10px' }}>
+                            <p style={{ margin: '0 0 5px 0' }}><User size={14} style={{ verticalAlign: 'middle' }} /> {order.users?.name || 'غير معروف'}</p>
+                            <p style={{ margin: '0 0 5px 0' }}><Phone size={14} style={{ verticalAlign: 'middle' }} /> {order.users?.phone || 'غير معروف'}</p>
+                          </div>
+                          <p style={{ marginTop: '10px', fontSize: '1.1rem', fontWeight: 'bold' }}>الإجمالي: {order.total_price} ريال</p>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end' }}>
+                          <span style={{
+                            padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem', fontWeight: 'bold',
+                            backgroundColor: order.status === 'Pending' ? '#ff4d4f' : 
+                                           order.status === 'Processing' ? '#faad14' : 
+                                           order.status === 'OnTheWay' ? '#1890ff' : 
+                                           order.status === 'Delivered' ? '#52c41a' : '#595959',
+                            color: 'white'
+                          }}>
+                            {order.status === 'Pending' ? 'جديد' : 
+                             order.status === 'Processing' ? (order.is_packed ? 'بانتظار السائق' : 'جاري التحضير') : 
+                             order.status === 'OnTheWay' ? 'في الطريق' : 
+                             order.status === 'Delivered' ? 'تم التوصيل' : 'ملغى'}
+                          </span>
+                          {order.delivery_type === 'Pickup' && (
+                            <span style={{ padding: '3px 10px', borderRadius: '10px', background: '#ff9800', color: 'white', fontSize: '0.8rem' }}>
+                              استلام من المحل
+                            </span>
+                          )}
+                          <div style={{ display: 'flex', gap: '5px', marginTop: '10px' }}>
+                            <button onClick={() => viewOrderDetails(order.id)} style={{ padding: '6px 12px', background: 'var(--surface-card)', color: 'var(--primary-color)', border: '1px solid var(--primary-color)', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <Eye size={16} /> التفاصيل
+                            </button>
+                            {order.status !== 'Cancelled' && order.status !== 'Delivered' && (
+                              <button onClick={() => updateOrderStatus(order.id, 'Cancelled')} style={{ padding: '6px 12px', background: '#ff4d4f', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                                إلغاء
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {selectedOrderForDetails === order.id && (
+                        <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
+                          <h4 style={{ marginBottom: '10px', color: 'var(--primary-light)' }}>تفاصيل المنتجات:</h4>
+                          {orderDetailsItems.length === 0 ? (
+                            <p>جاري التحميل...</p>
+                          ) : (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                              {orderDetailsItems.map(item => (
+                                <div key={item.id} style={{ background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '6px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                  <div style={{ width: '40px', height: '40px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', backgroundImage: `url(${item.products?.image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                                  <div>
+                                    <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 'bold' }}>{item.products?.name}</p>
+                                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{item.quantity} x {item.price_at_time} ريال</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* ===================== SETTINGS ===================== */}
         <div className="glass accordion-card">
           <div onClick={() => toggleAccordion('settings')} style={{ padding: '20px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--primary-color)' }}>
