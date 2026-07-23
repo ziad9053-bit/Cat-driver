@@ -12,10 +12,6 @@ export default function CategoryPage({ params }) {
   const [activeSubcategoryId, setActiveSubcategoryId] = useState(null);
   const [sortBy, setSortBy] = useState('default');
 
-  if (loading) {
-    return <div className="page-wrapper"><div className="glass loading-card">جاري التحميل...</div></div>;
-  }
-
   const mainCategory = categories.find(c => c.id === categoryId);
   const subCategories = categories.filter(c => c.parent_id === categoryId);
   
@@ -56,6 +52,10 @@ export default function CategoryPage({ params }) {
     
     return results;
   }, [products, displayCategoryId, sortBy, showBranchesView, allCategoryProducts]);
+
+  if (loading) {
+    return <div className="page-wrapper"><div className="glass loading-card">جاري التحميل...</div></div>;
+  }
 
   return (
     <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '100px' }}>
