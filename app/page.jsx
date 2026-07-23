@@ -22,7 +22,11 @@ export default function Home() {
 
   const getProductsForCategory = (mainCatId) => {
     const subCatIds = categories.filter(c => c.parent_id === mainCatId).map(c => c.id);
-    return products.filter(p => p.category_id === mainCatId || subCatIds.includes(p.category_id));
+    return products.filter(p => {
+      const isMainCat = p.category_id === mainCatId || p.category_ids?.includes(mainCatId);
+      const isSubCat = subCatIds.includes(p.category_id) || p.category_ids?.some(id => subCatIds.includes(id));
+      return isMainCat || isSubCat;
+    });
   };
 
   const mainCategories = categories.filter(c => c.parent_id === null);

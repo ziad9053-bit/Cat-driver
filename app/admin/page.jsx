@@ -51,13 +51,12 @@ export default function AdminDashboard() {
     return cat.name;
   };
 
-  // --- Product Form State ---
   const [productForm, setProductForm] = useState({
     name: '',
     current_price: '',
     weight: '',
     description: '',
-    category_id: '',
+    category_ids: [],
     stock_quantity: 100,
     is_active: true,
     is_offer: false,
@@ -69,7 +68,7 @@ export default function AdminDashboard() {
 
   const resetProductForm = () => {
     setEditingProductId(null);
-    setProductForm({ name: '', current_price: '', weight: '', description: '', category_id: '', stock_quantity: 100, is_active: true, is_offer: false, offer_label: '', offer_color: '#FF3B30' });
+    setProductForm({ name: '', current_price: '', weight: '', description: '', category_ids: [], stock_quantity: 100, is_active: true, is_offer: false, offer_label: '', offer_color: '#FF3B30' });
     setProdImageFile(null);
     setProdImagePreview('');
   };
@@ -110,7 +109,7 @@ export default function AdminDashboard() {
         current_price: parseFloat(productForm.current_price),
         weight: productForm.weight,
         description: productForm.description,
-        category_id: productForm.category_id || null,
+        category_ids: productForm.category_ids,
         stock_quantity: parseInt(productForm.stock_quantity) || 0,
         is_active: productForm.is_active,
         is_offer: productForm.is_offer,
@@ -144,7 +143,7 @@ export default function AdminDashboard() {
       current_price: product.current_price,
       weight: product.weight || '',
       description: product.description || '',
-      category_id: product.category_id || '',
+      category_ids: product.category_ids || (product.category_id ? [product.category_id] : []),
       stock_quantity: product.stock_quantity ?? 100,
       is_active: product.is_active ?? true,
       is_offer: product.is_offer || false,
@@ -381,13 +380,27 @@ export default function AdminDashboard() {
                     <input type="text" name="weight" value={productForm.weight} onChange={handleProductInputChange} />
                   </div>
                   <div className="form-group" style={{ flex: 1 }}>
-                    <label>القسم</label>
-                    <select name="category_id" value={productForm.category_id} onChange={handleProductInputChange}>
-                      <option value="">بدون تصنيف</option>
+                    <label>الفروع (يمكنك اختيار أكثر من فرع)</label>
+                    <div style={{ maxHeight: '150px', overflowY: 'auto', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {categories.map(c => (
-                        <option key={c.id} value={c.id}>{getCategoryName(c.id)}</option>
+                        <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={productForm.category_ids.includes(c.id)}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setProductForm(prev => {
+                                const newIds = checked 
+                                  ? [...prev.category_ids, c.id]
+                                  : prev.category_ids.filter(id => id !== c.id);
+                                return { ...prev, category_ids: newIds };
+                              });
+                            }}
+                          />
+                          {getCategoryName(c.id)}
+                        </label>
                       ))}
-                    </select>
+                    </div>
                   </div>
                 </div>
 
@@ -470,7 +483,7 @@ export default function AdminDashboard() {
                     <div className="admin-product-info">
                       <h3>{product.name}</h3>
                       <p className="admin-product-price">${product.current_price} <span style={{fontSize:'0.8rem'}}>{product.weight}</span></p>
-                      <span className="admin-product-category">{getCategoryName(product.category_id)}</span>
+                      <span className="admin-product-category">{product.category_ids?.length > 0 ? product.category_ids.map(id => getCategoryName(id)).join('، ') : (product.category_id ? getCategoryName(product.category_id) : 'بدون تصنيف')}</span>
                       <p style={{fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: 5}}>المخزون: {product.stock_quantity}</p>
                     </div>
                     <div className="admin-product-actions">
