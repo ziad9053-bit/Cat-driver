@@ -25,7 +25,7 @@ export default function ProductCard({ product }) {
     <Link href={`/product/${product.id}`} className="product-card glass">
       <div className="product-image-container">
         <Image 
-          src={`https://via.placeholder.com/200?text=${encodeURIComponent(product.name)}`} 
+          src={product.image_url || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=200'} 
           alt={product.name} 
           fill
           style={{ objectFit: 'cover' }}
