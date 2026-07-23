@@ -33,8 +33,8 @@ export default function Navbar() {
 
         {/* Logo (Center) */}
         <Link href="/" className="logo" style={{justifyContent: 'center', flex: '0 1 auto', textAlign: 'center', whiteSpace: 'nowrap', padding: '0 5px'}}>
-          <Truck className="logo-icon" size={24} />
-          <span style={{ color: 'var(--primary-color)', fontSize: '1rem' }}>{settings?.store_name || 'كات درايفر'}</span>
+          <Truck className="logo-icon" size={24} color="var(--primary-color)" />
+          <span style={{ color: 'var(--primary-color)', fontSize: '1rem' }}>{settings?.store_name || 'المخزن الكبير'}</span>
         </Link>
 
         {/* Search Bar */}
