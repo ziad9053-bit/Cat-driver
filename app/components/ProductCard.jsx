@@ -7,8 +7,7 @@ export default function ProductCard({ product }) {
   const { cart, updateQuantity } = useCart();
   
   // Check if product is in cart
-  const cartItem = cart.find(item => item.product_id === product.id);
-  const quantity = cartItem ? cartItem.quantity : 0;
+  const quantity = cart[product.id] || 0;
 
   const handleAdd = (e) => {
     e.preventDefault(); // Prevent navigating to product page
