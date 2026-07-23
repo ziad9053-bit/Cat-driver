@@ -113,13 +113,7 @@ export default function CategoryPage({ params }) {
           )}
 
           {/* الفروع (Branches) */}
-          <div className="category-section animate-slide-up" style={{ animationDelay: '0.2s', marginTop: '30px' }}>
-            <div className="section-header">
-              <h2 className="section-title">
-                <SlidersHorizontal size={24} color="var(--primary-color)" />
-                تسوق حسب الفرع
-              </h2>
-            </div>
+          <div className="category-section animate-slide-up" style={{ animationDelay: '0.2s', marginTop: '20px' }}>
             <div className="branches-grid">
               {subCategories.map((sub, index) => (
                 <div 
