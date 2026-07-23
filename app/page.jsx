@@ -80,10 +80,12 @@ export default function Home() {
           return (
             <div key={category.id} className="category-section animate-slide-up" style={{ animationDelay: `${(index + 3) * 0.1}s` }}>
               <div className="section-header">
-                <h2 className="section-title">
-                  <Grid size={24} color="var(--primary-color)" />
-                  {category.name}
-                </h2>
+                <Link href={`/category/${category.id}`} style={{ textDecoration: 'none' }}>
+                  <h2 className="section-title" style={{ cursor: 'pointer' }}>
+                    <Grid size={24} color="var(--primary-color)" />
+                    {category.name}
+                  </h2>
+                </Link>
                 <Link href={`/category/${category.id}`} className="view-all-btn">
                   عرض الكل
                 </Link>
