@@ -1,16 +1,20 @@
 'use client';
 
-import { use, useState, useEffect, useMemo } from 'react';
+import React, { useMemo, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '../../../context/CartContext';
 import Link from 'next/link';
 import { ArrowLeft, ShoppingBag, SlidersHorizontal, Tag } from 'lucide-react';
 import ProductCard from '../../components/ProductCard';
 
-export default function CategoryPage({ params }) {
+function CategoryPageContent({ params }) {
   const categoryId = params.id;
   const { categories, products, loading } = useCart();
-  const [activeSubcategoryId, setActiveSubcategoryId] = useState(null);
-  const [sortBy, setSortBy] = useState('default');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeSubcategoryId = searchParams.get('branch');
+  // using query parameter to set sort later if needed, but keeping it local for now is fine
+  const sortBy = 'default';
 
   const mainCategory = categories.find(c => c.id === categoryId);
   const subCategories = categories.filter(c => c.parent_id === categoryId);
@@ -77,7 +81,7 @@ export default function CategoryPage({ params }) {
         <div className="subcategories-scroll" style={{ marginTop: '20px' }}>
           <button
             className={`subcategory-pill ${!activeSubcategoryId ? 'active' : ''}`}
-            onClick={() => setActiveSubcategoryId(null)}
+            onClick={() => router.push(`/category/${categoryId}`)}
           >
             كل الفروع
           </button>
@@ -85,7 +89,7 @@ export default function CategoryPage({ params }) {
             <button
               key={sub.id}
               className={`subcategory-pill ${activeSubcategoryId === sub.id ? 'active' : ''}`}
-              onClick={() => setActiveSubcategoryId(sub.id)}
+              onClick={() => router.push(`/category/${categoryId}?branch=${sub.id}`)}
             >
               {sub.name}
             </button>
@@ -121,7 +125,7 @@ export default function CategoryPage({ params }) {
                   <div 
                     key={sub.id} 
                     className="branch-card glass"
-                    onClick={() => setActiveSubcategoryId(sub.id)}
+                    onClick={() => router.push(`/category/${categoryId}?branch=${sub.id}`)}
                   >
                     <div className="branch-img" style={{ backgroundImage: `url(${imageUrl})` }}></div>
                     <div className="branch-info">
@@ -185,7 +189,15 @@ export default function CategoryPage({ params }) {
           )}
         </>
       )}
+        <div style={{ height: '60px' }}></div>
     </div>
   );
 }
 
+export default function CategoryPage({ params }) {
+  return (
+    <Suspense fallback={<div className="page-wrapper"><div className="glass loading-card">جاري التحميل...</div></div>}>
+      <CategoryPageContent params={params} />
+    </Suspense>
+  );
+}
