@@ -1,15 +1,16 @@
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use, useState, useEffect, useMemo } from 'react';
 import { useCart } from '../../../context/CartContext';
 import Link from 'next/link';
-import { ArrowLeft, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, SlidersHorizontal } from 'lucide-react';
 
 export default function CategoryPage({ params }) {
   // Using React.use to unwrap params in Next 15+ if needed, or just destructure
   const categoryId = params.id;
   const { categories, products, loading } = useCart();
   const [activeSubcategoryId, setActiveSubcategoryId] = useState(null);
+  const [sortBy, setSortBy] = useState('default');
 
   useEffect(() => {
     // If no active subcategory is set, set it to the first available subcategory
@@ -31,7 +32,20 @@ export default function CategoryPage({ params }) {
   // If no subcategories, show products directly for the main category.
   // Otherwise, show products for the selected subcategory.
   const displayCategoryId = activeSubcategoryId || categoryId;
-  const categoryProducts = products.filter(p => p.category_id === displayCategoryId);
+  
+  const categoryProducts = useMemo(() => {
+    let results = products.filter(p => p.category_id === displayCategoryId && p.is_active !== false);
+    
+    if (sortBy === 'price_asc') {
+      results.sort((a, b) => a.current_price - b.current_price);
+    } else if (sortBy === 'price_desc') {
+      results.sort((a, b) => b.current_price - a.current_price);
+    } else if (sortBy === 'name_asc') {
+      results.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    
+    return results;
+  }, [products, displayCategoryId, sortBy]);
 
   return (
     <div className="page-wrapper animate-fade-in">
@@ -55,6 +69,25 @@ export default function CategoryPage({ params }) {
               {sub.name}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* شريط الترتيب */}
+      {categoryProducts.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px', padding: '0 10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface-color)', padding: '5px 15px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <SlidersHorizontal size={16} color="var(--primary-color)" />
+            <select 
+              value={sortBy} 
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none', cursor: 'pointer' }}
+            >
+              <option value="default">الترتيب الافتراضي</option>
+              <option value="price_asc">الأقل سعراً</option>
+              <option value="price_desc">الأعلى سعراً</option>
+              <option value="name_asc">الاسم (أ - ي)</option>
+            </select>
+          </div>
         </div>
       )}
 

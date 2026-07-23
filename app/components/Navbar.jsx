@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { ShoppingCart, Truck } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useSettings } from '../../context/SettingsContext';
+import SearchBar from './SearchBar';
 
 export default function Navbar() {
   const { cartItemsCount } = useCart();
@@ -36,13 +37,19 @@ export default function Navbar() {
           <span style={{ color: 'var(--primary-color)', fontSize: '1rem' }}>{settings?.store_name || 'كات درايفر'}</span>
         </Link>
 
-        {/* Worker (Left Side - flex-end in RTL) */}
+        {/* Search Bar */}
+        <div style={{ flex: 2, display: 'flex', justifyContent: 'center' }}>
+          <SearchBar />
+        </div>
+
+        {/* Cart Icon / Worker Link (Left Side - flex-end in RTL) */}
         <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
           <Link 
-            href="/login/worker" 
-            style={{ display: 'flex', alignItems: 'center', background: 'rgba(212, 175, 55, 0.15)', border: '1px solid rgba(212, 175, 55, 0.3)', padding: '4px 10px', borderRadius: '15px', color: 'var(--primary-color)', fontSize: '0.75rem', fontWeight: 'bold', transition: 'all 0.3s', whiteSpace: 'nowrap' }}
+            href="/cart" 
+            style={{ display: 'flex', alignItems: 'center', background: 'rgba(212, 175, 55, 0.15)', border: '1px solid rgba(212, 175, 55, 0.3)', padding: '6px 12px', borderRadius: '20px', color: 'var(--primary-color)', transition: 'all 0.3s' }}
           >
-            العمال
+            <ShoppingCart size={20} />
+            {cartItemsCount > 0 && <span style={{ marginRight: '5px', fontWeight: 'bold' }}>{cartItemsCount}</span>}
           </Link>
         </div>
       </div>
