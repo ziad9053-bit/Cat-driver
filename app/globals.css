@@ -617,3 +617,6 @@ input:focus, textarea:focus, select:focus {
   transform: translateY(-50%) scale(1.1);
   box-shadow: 0 5px 20px rgba(212, 175, 55, 0.4);
 }
+
+body { overflow-x: hidden; width: 100%; }
+html { overflow-x: hidden; width: 100%; }

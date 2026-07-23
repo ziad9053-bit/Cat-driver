@@ -242,6 +242,8 @@
 }
 
 .products-slider {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   display: flex;
   gap: 15px;
   overflow-x: auto;

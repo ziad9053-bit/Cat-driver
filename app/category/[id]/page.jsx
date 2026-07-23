@@ -105,7 +105,7 @@ function CategoryPageContent({ params }) {
                 <div key={sub.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div 
                     className={`branch-card glass ${isSelected ? 'active' : ''}`}
-                    onClick={() => router.push(isSelected ? `/category/${categoryId}` : `/category/${categoryId}?branch=${sub.id}`)}
+                    onClick={() => router.push(isSelected ? `/category/${categoryId}` : `/category/${categoryId}?branch=${sub.id}`, { scroll: false })}
                     style={{ border: isSelected ? '1px solid var(--primary-color)' : '' }}
                   >
                     <div className="branch-img" style={{ backgroundImage: `url(${imageUrl})` }}></div>
