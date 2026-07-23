@@ -115,22 +115,21 @@ export default function CategoryPage({ params }) {
           {/* الفروع (Branches) */}
           <div className="category-section animate-slide-up" style={{ animationDelay: '0.2s', marginTop: '20px' }}>
             <div className="branches-grid">
-              {subCategories.map((sub, index) => (
-                <div 
-                  key={sub.id} 
-                  className="branch-card glass"
-                  onClick={() => setActiveSubcategoryId(sub.id)}
-                >
-                  {sub.image_url ? (
-                    <div className="branch-img" style={{ backgroundImage: `url(${sub.image_url})` }}></div>
-                  ) : (
-                    <div className="branch-img placeholder"><SlidersHorizontal size={32} /></div>
-                  )}
-                  <div className="branch-info">
-                    <h3>{sub.name}</h3>
+              {subCategories.map((sub, index) => {
+                const imageUrl = sub.image_url || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=800';
+                return (
+                  <div 
+                    key={sub.id} 
+                    className="branch-card glass"
+                    onClick={() => setActiveSubcategoryId(sub.id)}
+                  >
+                    <div className="branch-img" style={{ backgroundImage: `url(${imageUrl})` }}></div>
+                    <div className="branch-info">
+                      <h3>{sub.name}</h3>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
           
